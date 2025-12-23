@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>นับ Stock (Connected)</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Sans Thai -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the app */
+        body { font-family: 'Noto Sans Thai', sans-serif; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        .counter-btn { transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out; user-select: none; }
+        .counter-btn:active { transform: scale(0.95); }
+        .shadow-custom { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        .page { display: none; }
+        .page.active { display: block; }
+        .nav-link.active-mobile span { font-weight: 700; }
+        .nav-link.active-mobile svg { color: #4f46e5; }
+        .nav-link.active-desktop { background-color: #eef2ff; color: #4338ca; font-weight: 600; }
+        #counterInput, #systemStockInput { -moz-appearance: textfield; }
+        #counterInput::-webkit-outer-spin-button, #counterInput::-webkit-inner-spin-button,
+        #systemStockInput::-webkit-outer-spin-button, #systemStockInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .modal-backdrop { transition: opacity 0.3s ease; }
+        .modal-content { transition: transform 0.3s ease, opacity 0.3s ease; transform: translateY(-20px) scale(0.95); }
+        #confirmModal .modal-content { padding: 24px; }
+        @keyframes fade-turquoise-to-green { from { background-color: #40E0D0; } to { background-color: #d1fae5; } }
+        @keyframes fade-green-to-white { from { background-color: #d1fae5; } to { background-color: #f9fafb; } }
+        .animate-new, .animate-new-single { animation: fade-turquoise-to-green 15s linear forwards; }
+        .animate-recent, .animate-recent-single { animation: fade-green-to-white 285s linear forwards; }
+        @keyframes fade-green-to-white-single { from { background-color: #d1fae5; } to { background-color: #ffffff; } }
+        .animate-recent-single { animation-name: fade-green-to-white-single; }
+        .bg-yellow-pastel { background-color: #fef9c3; }
+        .bg-orange-pastel { background-color: #ffedd5; }
+        .bg-red-pastel { background-color: #fee2e2; }
+        .bg-purple-pastel { background-color: #f3e8ff; }
+        .group-header { cursor: pointer; }
+        .group-header.is-static { cursor: default; }
+        .group-header:not(.is-static):hover { background-color: #f3f4f6; }
+        .lot-row { background-color: #ffffff; }
+        .time-col, .notes-col { display: none; }
+        .quick-edit-cell, .quick-edit-lot-cell, .quick-edit-system-cell { cursor: pointer; position: relative; }
+        .quick-edit-cell:hover, .quick-edit-lot-cell:hover, .quick-edit-system-cell:hover { background-color: #eef2ff; }
+        .color-btn { transition: transform 0.2s, box-shadow 0.2s; }
+        .color-btn.selected { transform: scale(1.2); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.5); }
+        .item-type-btn { transition: background-color 0.2s, color 0.2s, box-shadow 0.2s; }
+        .item-type-btn.active-consumption { background-color: #f97316; color: white; z-index: 10; }
+        .item-type-btn.active-key { background-color: #3b82f6; color: white; z-index: 10; }
+        .item-type-btn:not(.active-consumption):not(.active-key) { background-color: #e5e7eb; color: #4b5563; }
+        
+        /* Loading Overlay */
+        #loadingOverlay { transition: opacity 0.3s ease; }
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid #4f46e5; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-white bg-opacity-80 z-50 flex flex-col items-center justify-center hidden opacity-0 pointer-events-none">
+        <div class="spinner mb-4"></div>
+        <p class="text-indigo-600 font-semibold" id="loadingText">Syncing with Google Sheets...</p>
+    </div>
+
+    <div class="md:flex">
+        <!-- Sidebar Navigation for Desktop -->
+        <nav class="hidden md:flex md:flex-col md:w-64 md:h-screen md:bg-white md:border-r md:border-gray-200 md:p-4">
+            <div class="text-indigo-600 mb-8 px-2">
+                <h2 class="text-2xl font-bold flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 001.414 0l2.414-2.414a1 1 0 01.707-.293H17" />
+                    </svg>
+                    นับ Stock RT
+                </h2>
+            </div>
+            <div class="space-y-2">
+                <a href="#homePage" data-page="homePage" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                    <span>Home</span>
+                </a>
+                <a href="#inventoryPage" data-page="inventoryPage" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+                    <span>Inventory</span>
+                </a>
+                <a href="#addPage" data-page="addPage" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span>Add Item</span>
+                </a>
+                <a href="#dashboardPage" data-page="dashboardPage" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <!-- Sync Status Indicator -->
+            <div id="syncStatus" class="mt-auto px-2 py-4 text-xs text-center text-gray-400">
+                Last synced: <span id="lastSyncTime">Never</span>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-4 md:p-8 pb-24 md:pb-8">
+            <div id="mainContentWrapper" class="max-w-4xl mx-auto">
+                <!-- Add Page -->
+                <div id="addPage" class="page">
+                    <div class="flex justify-between items-center mb-6">
+                        <h1 class="text-3xl font-bold text-gray-800">Add Item</h1>
+                        <button id="manualSyncBtn" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                            Sync Cloud
+                        </button>
+                    </div>
+                    <div class="md:grid md:grid-cols-3 md:gap-4 lg:gap-8">
+                        <div class="bg-white rounded-2xl shadow-custom p-6 md:p-8 text-center flex flex-col justify-between mb-8 md:mb-0">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-800 mb-2">Quantity (Count)</h2>
+                                <input type="number" id="counterInput" value="0" class="text-center text-6xl lg:text-8xl font-extrabold text-indigo-600 bg-transparent w-full border-none focus:ring-0 p-0">
+                            </div>
+                            <div class="mt-6">
+                                <div class="flex items-center justify-center space-x-4">
+                                    <button id="decrementBtn" class="counter-btn bg-gray-500 text-white rounded-full w-14 h-14 md:w-16 md:h-16 flex items-center justify-center shadow-md hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 md:h-10 md:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
+                                    </button>
+                                    <button id="incrementBtn" class="counter-btn bg-indigo-600 text-white rounded-full w-24 h-24 md:w-32 md:h-32 flex items-center justify-center shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 md:h-16 md:w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                    </button>
+                                </div>
+                                <button id="resetBtn" class="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg font-semibold shadow hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">Reset</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl shadow-custom p-6 md:p-8 text-center flex flex-col justify-between mb-8 md:mb-0">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-800 mb-2">System Stock</h2>
+                                <input type="number" id="systemStockInput" value="0" class="text-center text-6xl lg:text-8xl font-extrabold text-blue-600 bg-transparent w-full border-none focus:ring-0 p-0">
+                            </div>
+                            <div class="mt-6">
+                                <div class="flex items-center justify-center space-x-4">
+                                    <button id="systemDecrementBtn" class="counter-btn bg-gray-500 text-white rounded-full w-14 h-14 md:w-16 md:h-16 flex items-center justify-center shadow-md hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 md:h-10 md:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
+                                    </button>
+                                    <button id="systemIncrementBtn" class="counter-btn bg-blue-600 text-white rounded-full w-24 h-24 md:w-32 md:h-32 flex items-center justify-center shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 md:h-16 md:w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                    </button>
+                                </div>
+                                <button id="systemResetBtn" class="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg font-semibold shadow hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">Reset</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl shadow-custom p-6 md:p-8">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-2xl font-bold text-gray-800">Stock Details</h2>
+                                <div id="colorSelector" class="flex space-x-2">
+                                    <button type="button" data-color="green" class="color-btn w-6 h-6 rounded-full bg-green-500 focus:outline-none" title="Green"></button>
+                                    <button type="button" data-color="yellow" class="color-btn w-6 h-6 rounded-full bg-yellow-400 focus:outline-none" title="Yellow"></button>
+                                    <button type="button" data-color="orange" class="color-btn w-6 h-6 rounded-full bg-orange-400 focus:outline-none" title="Orange"></button>
+                                    <button type="button" data-color="red" class="color-btn w-6 h-6 rounded-full bg-red-500 focus:outline-none" title="Red"></button>
+                                    <button type="button" data-color="purple" class="color-btn w-6 h-6 rounded-full bg-purple-500 focus:outline-none" title="Purple"></button>
+                                    <button type="button" data-color="grey" class="color-btn w-6 h-6 rounded-full bg-gray-400 focus:outline-none" title="Grey"></button>
+                                </div>
+                            </div>
+                            <form id="stockForm" class="space-y-4">
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700">Item Type</label>
+                                    <div class="flex rounded-lg shadow-sm overflow-hidden border border-gray-300" id="itemTypeSelector">
+                                        <button type="button" data-type="Consumption" class="flex-1 py-2 font-semibold text-center transition item-type-btn rounded-l-lg active-consumption">Consumption</button>
+                                        <button type="button" data-type="Key" class="flex-1 py-2 font-semibold text-center transition item-type-btn rounded-r-lg">Key</button>
+                                    </div>
+                                    <input type="hidden" id="stockItemType" value="Consumption">
+                                </div>
+                                <div>
+                                    <label for="stockName" class="block text-sm font-medium text-gray-700">Name</label>
+                                    <input type="text" id="stockName" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., Product A">
+                                </div>
+                                <div>
+                                    <label for="stockUnit" class="block text-sm font-medium text-gray-700">Unit</label>
+                                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-2 mb-3" id="unitButtons">
+                                        <button type="button" class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">ชิ้น</button>
+                                        <button type="button" class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">กล่อง</button>
+                                        <button type="button" class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">คู่</button>
+                                        <button type="button" class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">แผ่น</button>
+                                        <button type="button" class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">ขวด</button>
+                                    </div>
+                                    <input type="text" id="stockUnit" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., pcs, kg, box">
+                                </div>
+                                <div>
+                                    <label for="stockLot" class="block text-sm font-medium text-gray-700">Lot</label>
+                                    <input type="text" id="stockLot" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., LOT202401">
+                                </div>
+                                <div>
+                                    <label for="stockNotes" class="block text-sm font-medium text-gray-700">Notes</label>
+                                    <textarea id="stockNotes" rows="3" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Optional notes..."></textarea>
+                                </div>
+                                <div>
+                                    <button type="submit" class="w-full mt-4 flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Save to Cloud Inventory
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory Page -->
+                <div id="inventoryPage" class="page bg-white rounded-2xl shadow-custom p-6 md:p-8">
+                    <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
+                        <h1 class="text-3xl font-bold text-gray-800">Inventory</h1>
+                        <div class="w-full md:max-w-md">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
+                                </div>
+                                <input type="text" id="searchInput" class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Search items...">
+                                <button id="clearSearchBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center hidden"><svg class="h-5 w-5 text-gray-400 hover:text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                            </div>
+                            <div id="searchOptions" class="flex items-center space-x-4 mt-2">
+                                <span class="text-sm font-medium text-gray-700">Search by:</span>
+                                <div class="flex items-center"><input id="searchContains" name="searchType" type="radio" checked class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"><label for="searchContains" class="ml-2 block text-sm text-gray-900">Contains</label></div>
+                                <div class="flex items-center"><input id="searchPrefix" name="searchType" type="radio" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"><label for="searchPrefix" class="ml-2 block text-sm text-gray-900">Prefix</label></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="inventoryList" class="space-y-4"></div>
+                </div>
+
+                <!-- Home Page -->
+                <div id="homePage" class="page bg-white rounded-2xl shadow-custom p-6 md:p-8">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
+                        <h1 class="text-3xl font-bold text-gray-800">Inventory Overview</h1>
+                        <div class="flex items-center space-x-4 flex-wrap">
+                            <div class="flex items-center"><input id="showTime" type="checkbox" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"><label for="showTime" class="ml-2 block text-sm text-gray-900">Show time</label></div>
+                            <div class="flex items-center"><input id="showNotes" type="checkbox" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"><label for="showNotes" class="ml-2 block text-sm text-gray-900">Show notes</label></div>
+                            <div class="flex items-center"><input id="sortLatestOnTop" type="checkbox" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"><label for="sortLatestOnTop" class="ml-2 block text-sm text-gray-900">Show latest on top</label></div>
+                        </div>
+                    </div>
+                    <div id="homeInventoryTableContainer" class="overflow-x-auto"></div>
+                </div>
+
+                <!-- Dashboard Page -->
+                <div id="dashboardPage" class="page bg-white rounded-2xl shadow-custom p-6 md:p-8">
+                    <h1 class="text-3xl font-bold text-gray-800 text-center md:text-left">Dashboard</h1>
+                    <div class="text-indigo-600 mb-8 px-2 text-center md:text-left">
+                        <h2 class="text-2xl font-bold flex items-center justify-center md:justify-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 001.414 0l2.414-2.414a1 1 0 01.707-.293H17" /></svg>
+                            นับ Stock RT NU
+                        </h2>
+                    </div>
+                    <p class="text-center md:text-left text-gray-500 mt-2 mb-6">Manage data and sync with Google Sheets.</p>
+                    <div class="space-y-4 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-4">
+                        <button id="exportCsvBtn" class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">Export CSV</button>
+                        <label for="importCsvInput" class="cursor-pointer w-full md:w-auto flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Load from CSV</label>
+                        <input type="file" id="importCsvInput" class="hidden" accept=".csv">
+                        <button id="clearDataBtn" class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700">Clear All Data</button>
+                    </div>
+
+                    <!-- Bulk Actions -->
+                    <div class="mt-8 pt-8 border-t border-gray-200">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Bulk Color Actions</h2>
+                        <div class="space-y-4 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-4">
+                            <button id="resetColorsBtn" class="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Reset Colors</button>
+                            <button id="setAllPurpleBtn" class="w-full md:w-auto px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700">All Purple</button>
+                            <button id="setBlankToYellowBtn" class="w-full md:w-auto px-4 py-2 bg-yellow-400 text-gray-800 rounded-md text-sm font-medium hover:bg-yellow-500">Blank to Yellow</button>
+                            <button id="setAllYellowBtn" class="w-full md:w-auto px-4 py-2 bg-yellow-400 text-gray-800 rounded-md text-sm font-medium hover:bg-yellow-500">All Yellow</button>
+                            <button id="setAllGreyBtn" class="w-full md:w-auto px-4 py-2 bg-gray-500 text-white rounded-md text-sm font-medium hover:bg-gray-600">All Grey</button>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-8 border-t border-gray-200">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-2xl font-bold text-gray-800">Activity Log</h2>
+                            <button id="exportLogCsvBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">Export Log</button>
+                        </div>
+                        <div id="activityLogList" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <button id="fullScreenToggleBtn" class="fixed right-4 bottom-20 md:bottom-12 z-40 p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 256 256"><path id="fullScreenIconPath" d="M216,48V96a8,8,0,0,1-16,0V67.31l-42.34,42.35a8,8,0,0,1-11.32-11.32L188.69,56H160a8,8,0,0,1,0-16h48A8,8,0,0,1,216,48ZM98.34,146.34,56,188.69V160a8,8,0,0,0-16,0v48a8,8,0,0,0,8,8H96a8,8,0,0,0,0-16H67.31l42.35-42.34a8,8,0,0,0-11.32-11.32ZM208,152a8,8,0,0,0-8,8v28.69l-42.34-42.35a8,8,0,0,0-11.32,11.32L188.69,200H160a8,8,0,0,0,0,16h48a8,8,0,0,0,8-8V160A8,8,0,0,0,208,152ZM67.31,56H96a8,8,0,0,0,0-16H48a8,8,0,0,0-8,8V96a8,8,0,0,0,16,0V67.31l42.34,42.35a8,8,0,0,0,11.32-11.32Z" /></svg></button>
+
+    <!-- Modals -->
+    <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none"><div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center"><div id="modalIcon"></div><h3 id="modalTitle" class="text-xl font-bold text-gray-800 mt-4"></h3><p id="modalMessage" class="text-gray-600 mt-2"></p><button id="modalCloseBtn" class="w-full mt-6 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700">OK</button></div></div>
+    <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none"><div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100"><svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div><h3 id="confirmModalTitle" class="text-xl font-bold text-gray-800 mt-4">Confirm Action</h3><p id="confirmModalMessage" class="text-gray-600 mt-2"></p><div class="flex justify-center space-x-4 mt-6"><button id="confirmDeleteBtn" class="flex-1 py-2 px-4 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700">Confirm</button><button id="cancelDeleteBtn" class="flex-1 py-2 px-4 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400">Cancel</button></div></div></div>
+
+    <!-- Mobile Nav -->
+    <nav class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-custom">
+        <div class="flex justify-around max-w-md mx-auto px-2 py-2">
+            <a href="#homePage" data-page="homePage" class="nav-link flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 w-1/4 py-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span class="text-xs">Home</span></a>
+            <a href="#inventoryPage" data-page="inventoryPage" class="nav-link flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 w-1/4 py-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg><span class="text-xs">Inventory</span></a>
+            <a href="#addPage" data-page="addPage" class="nav-link flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 w-1/4 py-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span class="text-xs">Add</span></a>
+            <a href="#dashboardPage" data-page="dashboardPage" class="nav-link flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 w-1/4 py-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg><span class="text-xs">Dashboard</span></a>
+        </div>
+    </nav>
+
+    <script>
+        // --- API CONFIGURATION ---
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyy8WUXBisRiIJBykeJjVYfujj7-Db2zMM35SiZg0oBJqqPLA-PJa8zRVCTepl1OuwoXA/exec';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const ARROWS_OUT_PATH = "M216,48V96a8,8,0,0,1-16,0V67.31l-42.34,42.35a8,8,0,0,1-11.32-11.32L188.69,56H160a8,8,0,0,1,0-16h48A8,8,0,0,1,216,48ZM98.34,146.34,56,188.69V160a8,8,0,0,0-16,0v48a8,8,0,0,0,8,8H96a8,8,0,0,0,0-16H67.31l42.35-42.34a8,8,0,0,0-11.32-11.32ZM208,152a8,8,0,0,0-8,8v28.69l-42.34-42.35a8,8,0,0,0-11.32,11.32L188.69,200H160a8,8,0,0,0,0,16h48a8,8,0,0,0,8-8V160A8,8,0,0,0,208,152ZM67.31,56H96a8,8,0,0,0,0-16H48a8,8,0,0,0-8,8V96a8,8,0,0,0,16,0V67.31l42.34,42.35a8,8,0,0,0,11.32-11.32Z";
+            const ARROWS_IN_PATH = "M192,104a8,8,0,0,0,8-8V48a8,8,0,0,0-8-8H144a8,8,0,0,0,0,16h28.69L130.34,101.66a8,8,0,0,0,11.32,11.32L200,67.31V96A8,8,0,0,0,208,104Zm-80,8a8,8,0,0,0-8-8H48a8,8,0,0,0-8-8v48a8,8,0,0,0,8,8H96a8,8,0,0,0,0-16H67.31l42.35-42.34a8,8,0,0,0-11.32-11.32ZM48,160a8,8,0,0,0,8,8h28.69l-42.35,42.34a8,8,0,0,0,11.32,11.32L96,188.69V208a8,8,0,0,0,16,0V160a8,8,0,0,0-8-8ZM188.69,176H160a8,8,0,0,0,0,16h48a8,8,0,0,0,8-8V144a8,8,0,0,0-16,0v28.69l-42.34-42.35a8,8,0,0,0-11.32,11.32Z";
+
+            // Elements
+            const counterInput = document.getElementById('counterInput');
+            const incrementBtn = document.getElementById('incrementBtn');
+            const decrementBtn = document.getElementById('decrementBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const systemStockInput = document.getElementById('systemStockInput');
+            const systemIncrementBtn = document.getElementById('systemIncrementBtn');
+            const systemDecrementBtn = document.getElementById('systemDecrementBtn');
+            const systemResetBtn = document.getElementById('systemResetBtn');
+            const pages = document.querySelectorAll('.page');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const stockForm = document.getElementById('stockForm');
+            const inventoryList = document.getElementById('inventoryList');
+            const homeInventoryTableContainer = document.getElementById('homeInventoryTableContainer');
+            const exportCsvBtn = document.getElementById('exportCsvBtn');
+            const importCsvInput = document.getElementById('importCsvInput');
+            const searchInput = document.getElementById('searchInput');
+            const clearDataBtn = document.getElementById('clearDataBtn');
+            const clearSearchBtn = document.getElementById('clearSearchBtn');
+            const sortLatestOnTopCheckbox = document.getElementById('sortLatestOnTop');
+            const showTimeCheckbox = document.getElementById('showTime');
+            const showNotesCheckbox = document.getElementById('showNotes');
+            const activityLogList = document.getElementById('activityLogList'); 
+            const exportLogCsvBtn = document.getElementById('exportLogCsvBtn');
+            const colorSelector = document.getElementById('colorSelector');
+            const resetColorsBtn = document.getElementById('resetColorsBtn');
+            const setAllGreyBtn = document.getElementById('setAllGreyBtn');
+            const itemTypeSelector = document.getElementById('itemTypeSelector');
+            const stockItemTypeInput = document.getElementById('stockItemType');
+            const mainContentWrapper = document.getElementById('mainContentWrapper');
+            const fullScreenToggleBtn = document.getElementById('fullScreenToggleBtn');
+            const fullScreenIconPath = document.getElementById('fullScreenIconPath');
+            const setAllPurpleBtn = document.getElementById('setAllPurpleBtn');
+            const setAllYellowBtn = document.getElementById('setAllYellowBtn');
+            const setBlankToYellowBtn = document.getElementById('setBlankToYellowBtn');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const manualSyncBtn = document.getElementById('manualSyncBtn');
+            const lastSyncTimeEl = document.getElementById('lastSyncTime');
+
+            // Modals
+            const customModal = document.getElementById('customModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const modalIcon = document.getElementById('modalIcon');
+            const modalCloseBtn = document.getElementById('modalCloseBtn');
+            const confirmModal = document.getElementById('confirmModal');
+            const confirmModalTitle = document.getElementById('confirmModalTitle');
+            const confirmModalMessage = document.getElementById('confirmModalMessage');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+            // State
+            let inventory = JSON.parse(localStorage.getItem('stockInventory')) || [];
+            let logActivity = JSON.parse(localStorage.getItem('stockActivityLog')) || []; 
+            let editIndex = -1;
+            let prefillNameForNewLot = '';
+            let expandedGroups = {};
+            let realTimeUpdateInterval;
+            let itemToScrollTo = null;
+            let modalCallback = null;
+            let editOriginPage = 'homePage';
+            const DEFAULT_MAX_WIDTH_CLASS = 'max-w-4xl';
+            const FIFTEEN_SECONDS = 15 * 1000;
+            const FIVE_MINUTES = 5 * 60 * 1000;
+            const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
+            const ONE_MONTH = 30 * 24 * 60 * 60 * 1000;
+            const FORTY_FIVE_DAYS = 45 * 24 * 60 * 60 * 1000;
+
+            // --- API FUNCTIONS ---
+            function showLoading(show) {
+                if (show) {
+                    loadingOverlay.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+                } else {
+                    loadingOverlay.classList.add('opacity-0', 'pointer-events-none');
+                    setTimeout(() => loadingOverlay.classList.add('hidden'), 300);
+                }
+            }
+
+            async function loadFromCloud() {
+                showLoading(true);
+                try {
+                    const response = await fetch(API_URL);
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        inventory = data.inventory || [];
+                        logActivity = data.logs || [];
+                        // Update LocalStorage to match cloud
+                        localStorage.setItem('stockInventory', JSON.stringify(inventory));
+                        localStorage.setItem('stockActivityLog', JSON.stringify(logActivity));
+                        
+                        // Render UI
+                        renderInventory();
+                        renderHomeInventoryTable();
+                        renderActivityLog();
+                        updateLastSyncTime();
+                        console.log('Loaded from cloud successfully');
+                    } else {
+                        throw new Error(data.message || 'Unknown error');
+                    }
+                } catch (e) {
+                    console.error('Load Error:', e);
+                    showModal('Sync Error', 'Failed to load data from Google Sheets. Working offline for now.', 'error');
+                } finally {
+                    showLoading(false);
+                }
+            }
+
+            async function saveToCloud() {
+                // We use sendBeacon or no-cors POST for fire-and-forget, OR simple fetch
+                // Google Apps Script requires text/plain body for POST to avoid CORS preflight issues usually.
+                try {
+                    const payload = JSON.stringify({
+                        inventory: inventory,
+                        logs: logActivity
+                    });
+                    
+                    // Using fetch with no-cors to avoid CORS preflight failures on some browsers
+                    // Note: We can't read the response in no-cors mode, but GAS receives it.
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        body: payload,
+                        headers: { "Content-Type": "text/plain;charset=utf-8" }
+                    });
+                    updateLastSyncTime();
+                    console.log('Saved to cloud');
+                } catch (e) {
+                    console.error('Save Error:', e);
+                    // Don't disturb user with modal on every save error, just log it.
+                }
+            }
+
+            function updateLastSyncTime() {
+                const now = new Date();
+                lastSyncTimeEl.textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+            }
+
+            function saveState() {
+                // Save locally first (Optimistic UI)
+                localStorage.setItem('stockInventory', JSON.stringify(inventory));
+                localStorage.setItem('stockActivityLog', JSON.stringify(logActivity));
+                // Then sync to cloud
+                saveToCloud();
+            }
+
+            // --- Helpers ---
+            function setItemType(type) {
+                stockItemTypeInput.value = type;
+                itemTypeSelector.querySelectorAll('.item-type-btn').forEach(btn => {
+                    btn.classList.remove('active-consumption', 'active-key');
+                    if (btn.dataset.type === type) {
+                        btn.classList.add(type === 'Consumption' ? 'active-consumption' : 'active-key');
+                    }
+                });
+            }
+
+            function showModal(title, message, type = 'success', callback = null) {
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                modalIcon.innerHTML = type === 'success'
+                    ? `<div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100"><svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div>`
+                    : `<div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100"><svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div>`;
+                modalCallback = callback;
+                customModal.classList.remove('opacity-0', 'pointer-events-none');
+                customModal.querySelector('.modal-content').style.transform = 'translateY(0) scale(1)';
+            }
+
+            function handleModalClose() {
+                customModal.classList.add('opacity-0');
+                customModal.querySelector('.modal-content').style.transform = 'translateY(-20px) scale(0.95)';
+                setTimeout(() => {
+                    customModal.classList.add('pointer-events-none');
+                    if (modalCallback) {
+                        const tempCallback = modalCallback;
+                        modalCallback = null;
+                        tempCallback();
+                    }
+                }, 300);
+            }
+
+            function showConfirmModal(title, message, onConfirm, onCancel) {
+                confirmModalTitle.textContent = title;
+                confirmModalMessage.textContent = message;
+                confirmModal.classList.remove('opacity-0', 'pointer-events-none');
+                confirmModal.querySelector('.modal-content').style.transform = 'translateY(0) scale(1)';
+                confirmDeleteBtn.onclick = () => { hideConfirmModal(); onConfirm?.(); };
+                cancelDeleteBtn.onclick = () => { hideConfirmModal(); onCancel?.(); };
+            }
+
+            function hideConfirmModal() {
+                confirmModal.classList.add('opacity-0');
+                confirmModal.querySelector('.modal-content').style.transform = 'translateY(-20px) scale(0.95)';
+                setTimeout(() => confirmModal.classList.add('pointer-events-none'), 300);
+            }
+
+            function scrollToItem(itemName) {
+                const tableBody = homeInventoryTableContainer.querySelector('tbody');
+                if (!tableBody || !itemName) return;
+                let targetRow = null;
+                tableBody.querySelectorAll('.group-header').forEach(row => {
+                    const groupName = row.dataset.groupName;
+                    if (groupName === itemName || (!groupName && row.querySelector('td:first-child').textContent.includes(itemName))) {
+                        targetRow = row;
+                    }
+                });
+                if (targetRow) {
+                    targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetRow.style.outline = '2px solid #4f46e5'; 
+                    setTimeout(() => targetRow.style.outline = 'none', 2000);
+                }
+            }
+
+            function toggleFullScreen() {
+                const isCurrentlyConstrained = mainContentWrapper.classList.contains(DEFAULT_MAX_WIDTH_CLASS);
+                mainContentWrapper.classList.toggle(DEFAULT_MAX_WIDTH_CLASS, !isCurrentlyConstrained);
+                mainContentWrapper.classList.toggle('mx-auto', !isCurrentlyConstrained); 
+                if (isCurrentlyConstrained) {
+                    fullScreenIconPath.setAttribute('d', ARROWS_IN_PATH);
+                    fullScreenToggleBtn.title = "Toggle Normal Width";
+                } else {
+                    fullScreenIconPath.setAttribute('d', ARROWS_OUT_PATH);
+                    fullScreenToggleBtn.title = "Toggle Full Width";
+                }
+            }
+
+            function showPage(pageId) {
+                if (realTimeUpdateInterval) {
+                    clearInterval(realTimeUpdateInterval);
+                    realTimeUpdateInterval = null;
+                }
+                pages.forEach(page => page.classList.remove('active'));
+                navLinks.forEach(link => {
+                    link.classList.remove('active-mobile', 'text-indigo-600', 'active-desktop');
+                    if (link.dataset.page === pageId) {
+                        link.classList.add('active-mobile', 'text-indigo-600', 'active-desktop');
+                    }
+                });
+                const targetPage = document.getElementById(pageId);
+                if (targetPage) {
+                    targetPage.classList.add('active');
+                    window.scrollTo(0, 0);
+                }
+                if (pageId === 'addPage') {
+                    mainContentWrapper.classList.remove(DEFAULT_MAX_WIDTH_CLASS, 'mx-auto');
+                    mainContentWrapper.classList.add('md:px-4', 'lg:px-8'); 
+                } else {
+                    mainContentWrapper.classList.add(DEFAULT_MAX_WIDTH_CLASS, 'mx-auto');
+                    mainContentWrapper.classList.remove('md:px-4', 'lg:px-8');
+                }
+                if (pageId === 'homePage') {
+                    fullScreenToggleBtn.classList.remove('hidden');
+                } else {
+                    fullScreenToggleBtn.classList.add('hidden');
+                }
+                if (pageId === 'addPage') {
+                    if (prefillNameForNewLot) {
+                        document.getElementById('stockName').value = prefillNameForNewLot;
+                        counterInput.value = 0;
+                        systemStockInput.value = 0;
+                        document.getElementById('stockUnit').value = '';
+                        document.getElementById('stockLot').value = '';
+                        document.getElementById('stockNotes').value = '';
+                        colorSelector.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
+                        setItemType('Consumption');
+                        editIndex = -1;
+                        prefillNameForNewLot = '';
+                    } else if (editIndex === -1) {
+                        stockForm.reset();
+                        counterInput.value = 0;
+                        systemStockInput.value = 0;
+                        colorSelector.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
+                        setItemType('Consumption');
+                    }
+                }
+                if (pageId === 'inventoryPage') renderInventory();
+                if (pageId === 'homePage') {
+                    renderHomeInventoryTable();
+                    realTimeUpdateInterval = setInterval(updateHomeTableVisuals, 1000);
+                }
+                if (pageId === 'dashboardPage') renderActivityLog();
+            }
+
+            function generateLogMessage(action, newItem, oldItem) {
+                if (action === 'Added') return `Added '${newItem.name}' (Lot: ${newItem.lot}). Count: ${newItem.quantity}, System: ${newItem.systemStock}.`;
+                if (action === 'Deleted') return `Deleted '${oldItem.name}' (Lot: ${oldItem.lot}). Count: ${oldItem.quantity}, System: ${oldItem.systemStock}.`;
+                if (action === 'Updated') {
+                    const changes = [];
+                    if (newItem.quantity !== oldItem.quantity) changes.push(`Count from ${oldItem.quantity} to ${newItem.quantity}`);
+                    if (newItem.systemStock !== oldItem.systemStock) changes.push(`System Stock from ${oldItem.systemStock} to ${newItem.systemStock}`);
+                    if (newItem.unit !== oldItem.unit) changes.push(`Unit from '${oldItem.unit || ''}' to '${newItem.unit || ''}'`);
+                    if (newItem.lot !== oldItem.lot) changes.push(`Lot from '${oldItem.lot}' to '${newItem.lot}'`);
+                    if (newItem.notes !== oldItem.notes) changes.push(`Notes updated.`);
+                    if (newItem.color !== oldItem.color) changes.push(`Color changed.`);
+                    if (newItem.itemType !== oldItem.itemType) changes.push(`Item Type changed to ${newItem.itemType}.`);
+                    return `Updated '${newItem.name}' (Lot: ${newItem.lot}). ${changes.join(', ')}.`;
+                }
+                if (action === 'Cleared All') return `All inventory data cleared.`;
+                return '';
+            }
+
+            function addLogEntry(action, newItem = null, oldItem = null) {
+                logActivity.unshift({
+                    id: crypto.randomUUID(),
+                    timestamp: Date.now(),
+                    action,
+                    itemName: newItem?.name || oldItem?.name || '',
+                    itemLot: newItem?.lot || oldItem?.lot || '',
+                    message: generateLogMessage(action, newItem, oldItem),
+                    oldState: oldItem ? { ...oldItem } : null,
+                    newState: newItem ? { ...newItem } : null
+                });
+            }
+
+            function normalizeItem(item) {
+                item.itemType = item.itemType || 'Consumption';
+                item.systemStock = item.systemStock || 0;
+                return item;
+            }
+
+            function renderInventory() {
+                inventoryList.innerHTML = '';
+                const lowerCaseSearchText = searchInput.value.trim().toLowerCase();
+                const searchType = document.querySelector('input[name="searchType"]:checked').id;
+                const groupedItems = new Map();
+                inventory.map(normalizeItem).forEach((item, originalIndex) => {
+                    const itemNameKey = item.name.toLowerCase();
+                    if (!groupedItems.has(itemNameKey)) groupedItems.set(itemNameKey, []);
+                    groupedItems.get(itemNameKey).push({ ...item, originalIndex });
+                });
+                const sortedGroupedItems = Array.from(groupedItems.entries()).sort(([keyA], [keyB]) => keyA.localeCompare(keyB));
+                for (const [nameKey, lots] of sortedGroupedItems) {
+                    const primaryName = lots[0].name;
+                    const primaryItemType = lots[0].itemType;
+                    const itemTypeTag = primaryItemType === 'Key' ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Key</span>` : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">Consumption</span>`;
+                    const groupIsVisible = lowerCaseSearchText === '' || (searchType === 'searchPrefix' && primaryName.toLowerCase().startsWith(lowerCaseSearchText)) || (searchType === 'searchContains' && lots.some(lot => (lot.name && lot.name.toLowerCase().includes(lowerCaseSearchText)) || (lot.unit && lot.unit.toLowerCase().includes(lowerCaseSearchText)) || (lot.lot && lot.lot.toLowerCase().includes(lowerCaseSearchText)) || (lot.itemType && lot.itemType.toLowerCase().includes(lowerCaseSearchText))));
+                    if (groupIsVisible) {
+                        const totalQuantity = lots.reduce((sum, lot) => sum + lot.quantity, 0);
+                        const totalSystemStock = lots.reduce((sum, lot) => sum + (lot.systemStock || 0), 0);
+                        const itemGroupElement = document.createElement('div');
+                        itemGroupElement.className = 'bg-gray-100 p-4 rounded-lg shadow-sm mb-4';
+                        let lotsHtml = '';
+                        lots.sort((a, b) => (a.lot || '').localeCompare(b.lot || '')).forEach(lot => {
+                            lotsHtml += `<div class="flex justify-between items-center py-2 border-t border-gray-200 first:border-t-0"><div class="lot-display-area flex-1 mr-4"><p class="text-base font-semibold text-gray-700">Lot: ${lot.lot || '-'}</p><p class="text-sm text-gray-600">Count: <span class="font-bold text-indigo-600">${lot.quantity} ${lot.unit || ''}</span></p><p class="text-sm text-gray-600">System: <span class="font-bold text-blue-600">${lot.systemStock} ${lot.unit || ''}</span></p></div><div class="flex space-x-2"><button data-index="${lot.originalIndex}" class="edit-lot-btn p-2 rounded-full text-blue-500 hover:bg-blue-100 hover:text-blue-700" title="Edit Lot"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button><button data-index="${lot.originalIndex}" class="delete-lot-btn p-2 rounded-full text-red-500 hover:bg-red-100 hover:text-red-700" title="Delete Lot"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></div></div>`;
+                        });
+                        itemGroupElement.innerHTML = `<div class="flex justify-between items-center mb-2"><h3 class="text-xl font-bold text-gray-800">${primaryName} ${itemTypeTag}</h3><div class="flex flex-col text-right"><span class="text-base font-semibold text-indigo-600">Count: ${totalQuantity}</span><span class="text-base font-semibold text-blue-600">System: ${totalSystemStock}</span></div></div><button data-item-name="${primaryName}" class="add-new-lot-btn w-full flex items-center justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-300 mb-4"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Add a new lot for ${primaryName}</button><div class="lots-container border-t border-gray-200 mt-4 pt-4">${lotsHtml}</div>`;
+                        inventoryList.appendChild(itemGroupElement);
+                    }
+                }
+                if (inventoryList.children.length === 0) {
+                    inventoryList.innerHTML = `<p class="text-center text-gray-500 py-8">No items match your search criteria.</p>`;
+                }
+            }
+
+            function renderHomeInventoryTable() {
+                homeInventoryTableContainer.innerHTML = inventory.length === 0 ? `<p class="text-center text-gray-500 py-8">No items in inventory to display.</p>` : '';
+                if (inventory.length === 0) return;
+                const groupedItems = new Map();
+                inventory.map(normalizeItem).forEach((item, originalIndex) => {
+                    const group = groupedItems.get(item.name);
+                    if (!group) {
+                        groupedItems.set(item.name, { lots: [{...item, originalIndex}], totalQuantity: item.quantity, totalSystemStock: item.systemStock, latestUpdate: item.lastUpdated, primaryUnit: item.unit, itemType: item.itemType });
+                    } else {
+                        group.lots.push({...item, originalIndex});
+                        group.totalQuantity += item.quantity;
+                        group.totalSystemStock += item.systemStock;
+                        if (item.lastUpdated > group.latestUpdate) group.latestUpdate = item.lastUpdated;
+                    }
+                });
+                let displayGroups = Array.from(groupedItems.entries());
+                if (sortLatestOnTopCheckbox.checked) {
+                    displayGroups.sort(([, a], [, b]) => (b.latestUpdate || 0) - (a.latestUpdate || 0));
+                }
+                const table = document.createElement('table');
+                table.className = 'min-w-full';
+                table.innerHTML = `<thead class="bg-gray-50"><tr><th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name / Type</th><th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Qty (Count)</th><th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">System Stock</th><th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lot</th><th scope="col" class="time-col px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th><th scope="col" class="notes-col px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th></tr></thead><tbody class="bg-white divide-y divide-gray-200"></tbody>`;
+                const tableBody = table.querySelector('tbody');
+                const colorMap = { green: 'bg-green-500', yellow: 'bg-yellow-400', orange: 'bg-orange-400', red: 'bg-red-500', purple: 'bg-purple-500', grey: 'bg-gray-400' };
+                displayGroups.forEach(([name, group]) => {
+                    const uniqueColors = [...new Set(group.lots.map(lot => lot.color).filter(c => c))];
+                    const uniqueItemTypes = [...new Set(group.lots.map(lot => lot.itemType).filter(t => t))];
+                    let colorDotsHtml = uniqueColors.map(color => `<span class="inline-block w-2 h-2 ${colorMap[color] || ''} rounded-full mr-1 flex-shrink-0" title="${color}"></span>`).join('');
+                    if (colorDotsHtml) colorDotsHtml = `<div class="flex items-center mr-2">${colorDotsHtml}</div>`;
+                    const itemTypeBadgesHtml = uniqueItemTypes.map(type => `<span class="text-xs ${type === 'Key' ? 'text-blue-600' : 'text-orange-600'} font-medium ml-1">(${type})</span>`).join('');
+                    
+                    if (group.lots.length > 1) {
+                        const isExpanded = !!expandedGroups[name];
+                        const groupHeaderRow = tableBody.insertRow();
+                        groupHeaderRow.className = 'group-header';
+                        groupHeaderRow.dataset.groupName = name;
+                        groupHeaderRow.dataset.timestamp = group.latestUpdate;
+                        groupHeaderRow.innerHTML = `<td class="px-4 py-4 text-sm font-medium text-gray-900"><div class="flex items-center">${colorDotsHtml}<svg class="w-4 h-4 mr-2 transform transition-transform ${isExpanded ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg><div>${name} ${itemTypeBadgesHtml}</div></div></td><td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-indigo-600" title="Expand to edit individual lots">${group.totalQuantity} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-blue-600" title="Expand to edit individual lots">${group.totalSystemStock} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">(${group.lots.length} lots)</td><td class="time-col time-cell px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td><td class="notes-col px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td>`;
+                        group.lots.sort((a,b) => (a.lot || '').localeCompare(b.lot || '')).forEach(lot => {
+                            const lotColorDot = lot.color ? `<span class="inline-block w-2 h-2 ${colorMap[lot.color] || ''} rounded-full mr-2 flex-shrink-0" title="${lot.color}"></span>` : '';
+                            const lotTypeBadge = `<span class="text-xs ${lot.itemType === 'Key' ? 'text-blue-500' : 'text-orange-500'} font-medium ml-1">${lot.itemType ? (lot.itemType.startsWith('C') ? '(C)' : '(K)') : ''}</span>`;
+                            const lotRow = tableBody.insertRow();
+                            lotRow.className = `lot-row border-l-4 border-gray-200 ${isExpanded ? '' : 'hidden'}`;
+                            lotRow.dataset.groupFor = name;
+                            lotRow.innerHTML = `<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500"><div class="flex items-center ml-8">${lotColorDot} ${lotTypeBadge}</div></td><td class="quick-edit-lot-cell px-4 py-3 whitespace-nowrap text-sm text-indigo-700" data-index="${lot.originalIndex}">${lot.quantity} ${lot.unit || ''}</td><td class="quick-edit-system-cell px-4 py-3 whitespace-nowrap text-sm text-blue-700" data-index="${lot.originalIndex}">${lot.systemStock} ${lot.unit || ''}</td><td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${lot.lot}</td><td class="time-col px-4 py-3 whitespace-nowrap text-sm text-gray-500">${new Date(lot.lastUpdated).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour:'2-digit', minute:'2-digit' })}</td><td class="notes-col px-4 py-3 text-sm text-gray-500 whitespace-pre-wrap break-words">${lot.notes || ''}</td>`;
+                        });
+                    } else {
+                        const singleLot = group.lots[0];
+                        const singleColorDot = uniqueColors.map(color => `<span class="inline-block w-3 h-3 ${colorMap[color] || ''} rounded-full mr-2 flex-shrink-0" title="${color}"></span>`).join('');
+                        const singleRow = tableBody.insertRow();
+                        singleRow.className = 'group-header is-static';
+                        singleRow.dataset.timestamp = group.latestUpdate;
+                        singleRow.innerHTML = `<td class="px-4 py-4 text-sm font-medium text-gray-900"><div class="flex items-center">${singleColorDot}<span class="w-4 h-4 mr-2"></span>${name} ${itemTypeBadgesHtml}</div></td><td class="quick-edit-cell px-4 py-4 whitespace-nowrap text-sm font-bold text-indigo-600" data-index="${singleLot.originalIndex}">${group.totalQuantity} ${group.primaryUnit || ''}</td><td class="quick-edit-system-cell px-4 py-4 whitespace-nowrap text-sm font-bold text-blue-600" data-index="${singleLot.originalIndex}">${group.totalSystemStock} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${singleLot.lot}</td><td class="time-col px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td><td class="notes-col px-4 py-4 text-sm text-gray-500 whitespace-pre-wrap break-words">${singleLot.notes || ''}</td>`;
+                    }
+                });
+                homeInventoryTableContainer.appendChild(table);
+                updateHomeTableVisuals();
+                if (itemToScrollTo) {
+                    setTimeout(() => { scrollToItem(itemToScrollTo); itemToScrollTo = null; }, 50); 
+                }
+            }
+
+            function updateHomeTableVisuals() {
+                const showTime = showTimeCheckbox.checked;
+                const showNotes = showNotesCheckbox.checked;
+                const table = homeInventoryTableContainer.querySelector('table');
+                if (!table) return;
+                const headerCells = table.querySelectorAll('thead th');
+                headerCells.forEach(th => {
+                    if (th.classList.contains('time-col')) th.style.display = showTime ? 'table-cell' : 'none';
+                    if (th.classList.contains('notes-col')) th.style.display = showNotes ? 'table-cell' : 'none';
+                });
+                table.querySelectorAll('tr[data-timestamp]').forEach(row => {
+                    const timestamp = parseInt(row.dataset.timestamp, 10);
+                    const age = Date.now() - timestamp;
+                    let newClass = '';
+                    const isSingleLot = row.classList.contains('is-static');
+                    if (age < FIFTEEN_SECONDS) newClass = isSingleLot ? 'animate-new-single' : 'animate-new';
+                    else if (age < FIVE_MINUTES) newClass = isSingleLot ? 'animate-recent-single' : 'animate-recent';
+                    else if (age >= ONE_WEEK && age < ONE_MONTH) newClass = 'bg-yellow-pastel';
+                    else if (age >= ONE_MONTH && age < FORTY_FIVE_DAYS) newClass = 'bg-orange-pastel';
+                    else if (age >= FORTY_FIVE_DAYS) newClass = 'bg-red-pastel';
+                    row.classList.remove('animate-new', 'animate-recent', 'animate-new-single', 'animate-recent-single', 'bg-yellow-pastel', 'bg-orange-pastel', 'bg-red-pastel', 'bg-purple-pastel');
+                    row.style.animation = 'none';
+                    void row.offsetWidth; 
+                    row.style.animation = '';
+                    if(newClass) row.classList.add(newClass);
+                    row.querySelectorAll('.time-col').forEach(col => col.style.display = showTime ? 'table-cell' : 'none');
+                    row.querySelectorAll('.notes-col').forEach(col => col.style.display = showNotes ? 'table-cell' : 'none');
+                    if (showTime) {
+                        const timeCell = row.querySelector('.time-cell');
+                        if (timeCell) {
+                            timeCell.textContent = new Date(timestamp).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                        }
+                    }
+                });
+            }
+
+            function renderActivityLog() {
+                activityLogList.innerHTML = logActivity.length === 0 ? `<p class="text-center text-gray-500 py-4">No activity yet.</p>` : '';
+                if (logActivity.length === 0) return;
+                logActivity.forEach(log => {
+                    const logEntryElement = document.createElement('div');
+                    logEntryElement.className = 'bg-gray-50 p-3 rounded-lg shadow-sm text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between';
+                    const timestampFormatted = new Date(log.timestamp).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    logEntryElement.innerHTML = `<div class="flex-1 mb-2 sm:mb-0"><p class="font-semibold text-gray-800">${log.action}:</p><p class="text-gray-700">${log.message}</p></div><div class="text-xs text-gray-500 sm:text-right">${timestampFormatted}</div>`;
+                    activityLogList.appendChild(logEntryElement);
+                });
+            }
+
+            // Events
+            searchInput.addEventListener('input', renderInventory);
+            clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; renderInventory(); });
+            searchInput.addEventListener('keyup', (e) => clearSearchBtn.classList.toggle('hidden', e.target.value.length === 0));
+            document.querySelectorAll('input[name="searchType"]').forEach(radio => radio.addEventListener('change', renderInventory));
+            incrementBtn.addEventListener('click', () => counterInput.value = parseInt(counterInput.value, 10) + 1);
+            decrementBtn.addEventListener('click', () => { if (parseInt(counterInput.value, 10) > 0) counterInput.value = parseInt(counterInput.value, 10) - 1; });
+            resetBtn.addEventListener('click', () => counterInput.value = 0);
+            systemIncrementBtn.addEventListener('click', () => systemStockInput.value = parseInt(systemStockInput.value, 10) + 1);
+            systemDecrementBtn.addEventListener('click', () => { if (parseInt(systemStockInput.value, 10) > 0) systemStockInput.value = parseInt(systemStockInput.value, 10) - 1; });
+            systemResetBtn.addEventListener('click', () => systemStockInput.value = 0);
+            navLinks.forEach(link => link.addEventListener('click', (e) => { e.preventDefault(); showPage(link.dataset.page); }));
+            fullScreenToggleBtn.addEventListener('click', toggleFullScreen);
+            itemTypeSelector.addEventListener('click', (e) => { const targetBtn = e.target.closest('.item-type-btn'); if (targetBtn) setItemType(targetBtn.dataset.type); });
+            modalCloseBtn.addEventListener('click', handleModalClose);
+            inventoryList.addEventListener('click', (e) => {
+                const targetButton = e.target.closest('button');
+                if (!targetButton) return;
+                const index = parseInt(targetButton.dataset.index, 10);
+                if (targetButton.matches('.delete-lot-btn')) {
+                    const item = inventory[index];
+                    showConfirmModal('Confirm Deletion', `Delete Lot: '${item.lot}' for item '${item.name}'?`, () => {
+                        const deletedItem = inventory.splice(index, 1)[0];
+                        addLogEntry('Deleted', null, deletedItem);
+                        saveState();
+                        renderInventory();
+                        renderHomeInventoryTable();
+                        showModal('Deleted', `'${deletedItem.name}' (Lot: ${deletedItem.lot}) removed.`);
+                    });
+                } else if (targetButton.matches('.add-new-lot-btn')) {
+                    prefillNameForNewLot = targetButton.dataset.itemName;
+                    showPage('addPage');
+                } else if (targetButton.matches('.edit-lot-btn')) {
+                    editIndex = index;
+                    editOriginPage = 'inventoryPage';
+                    const itemToEdit = normalizeItem(inventory[editIndex]);
+                    document.getElementById('stockName').value = itemToEdit.name;
+                    counterInput.value = itemToEdit.quantity;
+                    systemStockInput.value = itemToEdit.systemStock;
+                    document.getElementById('stockUnit').value = itemToEdit.unit;
+                    document.getElementById('stockLot').value = itemToEdit.lot;
+                    document.getElementById('stockNotes').value = itemToEdit.notes || '';
+                    colorSelector.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
+                    if (itemToEdit.color) colorSelector.querySelector(`[data-color="${itemToEdit.color}"]`)?.classList.add('selected');
+                    setItemType(itemToEdit.itemType);
+                    showPage('addPage');
+                }
+            });
+
+            stockForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const quantity = parseInt(counterInput.value, 10) || 0;
+                const systemStock = parseInt(systemStockInput.value, 10) || 0;
+                const name = document.getElementById('stockName').value.trim();
+                const unit = document.getElementById('stockUnit').value.trim();
+                const lot = document.getElementById('stockLot').value.trim();
+                const notes = document.getElementById('stockNotes').value.trim();
+                const selectedColorEl = colorSelector.querySelector('.color-btn.selected');
+                const color = selectedColorEl ? selectedColorEl.dataset.color : null;
+                const itemType = stockItemTypeInput.value;
+
+                if (!name || !lot) return showModal('Fields Required', 'Please enter a Name and Lot number.', 'error');
+                if (quantity <= 0 && systemStock <= 0 && editIndex === -1) return showModal('Quantity Required', 'Please set a quantity or system stock greater than zero.', 'error');
+                
+                const newItemData = { name, unit, lot, quantity, systemStock, notes, color, itemType, lastUpdated: Date.now() };
+                
+                if (editIndex !== -1) {
+                    const oldItemData = { ...inventory[editIndex] };
+                    inventory[editIndex] = { ...oldItemData, ...newItemData };
+                    addLogEntry('Updated', inventory[editIndex], oldItemData);
+                    const targetPage = editOriginPage === 'inventoryPage' ? 'inventoryPage' : 'homePage';
+                    if (targetPage === 'homePage') itemToScrollTo = newItemData.name;
+                    else itemToScrollTo = null;
+                    showModal('Update Successful', `'${newItemData.name}' has been updated.`, 'success', () => { showPage(targetPage); });
+                    editIndex = -1;
+                    editOriginPage = 'homePage';
+                } else {
+                    if (inventory.some(item => item.name === name && item.lot === lot)) return showModal('Duplicate Lot', `Lot '${lot}' already exists for item '${name}'.`, 'error');
+                    newItemData.id = crypto.randomUUID();
+                    inventory.push(newItemData);
+                    addLogEntry('Added', newItemData);
+                    itemToScrollTo = newItemData.name;
+                    showModal('Success!', `'${newItemData.name}' added to inventory.`, 'success', () => { showPage('homePage'); });
+                }
+                saveState();
+                stockForm.reset();
+                counterInput.value = 0;
+                systemStockInput.value = 0;
+                setItemType('Consumption');
+            });
+
+            colorSelector.addEventListener('click', (e) => {
+                if (e.target.matches('.color-btn')) {
+                    const selectedBtn = e.target;
+                    if (selectedBtn.classList.contains('selected')) selectedBtn.classList.remove('selected');
+                    else {
+                        colorSelector.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
+                        selectedBtn.classList.add('selected');
+                    }
+                }
+            });
+
+            clearDataBtn.addEventListener('click', () => {
+                showConfirmModal('Clear All Data', 'Permanently delete all inventory data?', () => { 
+                    inventory = [];
+                    addLogEntry('Cleared All');
+                    saveState();
+                    renderInventory();
+                    renderHomeInventoryTable();
+                    showModal('Success', 'All inventory data has been cleared.');
+                });
+            });
+            
+            manualSyncBtn.addEventListener('click', () => {
+                loadFromCloud();
+            });
+
+            document.querySelectorAll('.unit-btn').forEach(button => button.addEventListener('click', (e) => document.getElementById('stockUnit').value = e.target.textContent));
+            sortLatestOnTopCheckbox.addEventListener('change', renderHomeInventoryTable);
+            showTimeCheckbox.addEventListener('change', updateHomeTableVisuals);
+            showNotesCheckbox.addEventListener('change', updateHomeTableVisuals);
+
+            homeInventoryTableContainer.addEventListener('click', (e) => {
+                const headerRow = e.target.closest('.group-header:not(.is-static)');
+                if (headerRow) {
+                    const groupName = headerRow.dataset.groupName;
+                    expandedGroups[groupName] = !expandedGroups[groupName];
+                    homeInventoryTableContainer.querySelectorAll(`.lot-row[data-group-for="${groupName}"]`).forEach(row => row.classList.toggle('hidden'));
+                    headerRow.querySelector('svg').classList.toggle('rotate-90');
+                }
+                const targetCell = e.target.closest('.quick-edit-cell, .quick-edit-lot-cell, .quick-edit-system-cell');
+                if (targetCell) {
+                    editIndex = parseInt(targetCell.dataset.index, 10);
+                    editOriginPage = 'homePage';
+                    const itemToEdit = normalizeItem(inventory[editIndex]);
+                    document.getElementById('stockName').value = itemToEdit.name;
+                    counterInput.value = itemToEdit.quantity;
+                    systemStockInput.value = itemToEdit.systemStock;
+                    document.getElementById('stockUnit').value = itemToEdit.unit;
+                    document.getElementById('stockLot').value = itemToEdit.lot;
+                    document.getElementById('stockNotes').value = itemToEdit.notes || '';
+                    colorSelector.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
+                    if (itemToEdit.color) colorSelector.querySelector(`[data-color="${itemToEdit.color}"]`)?.classList.add('selected');
+                    setItemType(itemToEdit.itemType);
+                    showPage('addPage');
+                }
+            });
+
+            resetColorsBtn.addEventListener('click', () => { showConfirmModal('Reset Colors', 'Remove color coding from all items?', () => { inventory.forEach(item => item.color = null); addLogEntry('Updated', { name: 'All Items' }, { color: 'any' }); saveState(); renderHomeInventoryTable(); showModal('Success', 'Colors reset.'); }); });
+            setAllPurpleBtn.addEventListener('click', () => { showConfirmModal('Set Purple', 'Set all items to purple?', () => { inventory.forEach(item => item.color = 'purple'); addLogEntry('Updated', { name: 'All Items', color: 'purple' }, { color: 'any' }); saveState(); renderHomeInventoryTable(); showModal('Success', 'All set to purple.'); }); });
+            setBlankToYellowBtn.addEventListener('click', () => { showConfirmModal('Set Blank to Yellow', 'Set blank items to yellow?', () => { let c = 0; inventory.forEach(item => { if (!item.color) { item.color = 'yellow'; c++; } }); if (c > 0) { addLogEntry('Updated', { name: `Bulk: ${c} items` }, { color: 'blank' }); saveState(); renderHomeInventoryTable(); showModal('Success', `${c} items updated.`); } else showModal('No Change', 'All items have colors.', 'error'); }); });
+            setAllYellowBtn.addEventListener('click', () => { showConfirmModal('Set Yellow', 'Set all items to yellow?', () => { inventory.forEach(item => item.color = 'yellow'); addLogEntry('Updated', { name: 'All Items', color: 'yellow' }, { color: 'any' }); saveState(); renderHomeInventoryTable(); showModal('Success', 'All set to yellow.'); }); });
+            setAllGreyBtn.addEventListener('click', () => { showConfirmModal('Set Grey', 'Set all items to grey?', () => { inventory.forEach(item => item.color = 'grey'); addLogEntry('Updated', { name: 'All Items', color: 'grey' }, { color: 'any' }); saveState(); renderHomeInventoryTable(); showModal('Success', 'All set to grey.'); }); });
+
+            // Initial Load from Cloud
+            loadFromCloud();
+            showPage('homePage');
+        });
+    </script>
+</body>
+</html>
