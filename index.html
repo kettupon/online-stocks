@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>นับ Stock (Firebase Firestore Split)</title>
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Noto Sans Thai -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Firebase SDKs (Compat versions for ease of use in vanilla JS) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
@@ -63,14 +60,12 @@
     </style>
 </head>
 <body class="bg-gray-100">
-    <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 bg-white bg-opacity-80 z-50 flex flex-col items-center justify-center hidden opacity-0 pointer-events-none">
         <div class="spinner mb-4"></div>
         <p class="text-indigo-600 font-semibold" id="loadingText">Connecting to Firestore...</p>
     </div>
 
     <div class="md:flex">
-        <!-- Sidebar Navigation for Desktop -->
         <nav class="hidden md:flex md:flex-col md:w-64 md:h-screen md:bg-white md:border-r md:border-gray-200 md:p-4">
             <div class="text-indigo-600 mb-8 px-2">
                 <h2 class="text-2xl font-bold flex items-center">
@@ -98,17 +93,14 @@
                     <span>Dashboard</span>
                 </a>
             </div>
-            <!-- Sync Status Indicator -->
             <div id="syncStatus" class="mt-auto px-2 py-4 text-xs text-center text-gray-400">
                 <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span> Firestore Split Mode<br>
                 Last update: <span id="lastSyncTime">Waiting...</span>
             </div>
         </nav>
 
-        <!-- Main Content Area -->
         <main class="flex-1 p-4 md:p-8 pb-24 md:pb-8">
             <div id="mainContentWrapper" class="max-w-4xl mx-auto">
-                <!-- Add Page -->
                 <div id="addPage" class="page">
                     <div class="flex justify-between items-center mb-6">
                         <h1 class="text-3xl font-bold text-gray-800">Add Item</h1>
@@ -204,7 +196,6 @@
                     </div>
                 </div>
 
-                <!-- Inventory Page -->
                 <div id="inventoryPage" class="page bg-white rounded-2xl shadow-custom p-6 md:p-8">
                     <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
                         <h1 class="text-3xl font-bold text-gray-800">Inventory</h1>
@@ -226,7 +217,6 @@
                     <div id="inventoryList" class="space-y-4"></div>
                 </div>
 
-                <!-- Home Page -->
                 <div id="homePage" class="page bg-white rounded-2xl shadow-custom p-6 md:p-8">
                     <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
                         <h1 class="text-3xl font-bold text-gray-800">Inventory Overview</h1>
@@ -239,7 +229,6 @@
                     <div id="homeInventoryTableContainer" class="overflow-x-auto"></div>
                 </div>
 
-                <!-- Dashboard Page -->
                 <div id="dashboardPage" class="page bg-white rounded-2xl shadow-custom p-6 md:p-8">
                     <h1 class="text-3xl font-bold text-gray-800 text-center md:text-left">Dashboard</h1>
                     <div class="text-indigo-600 mb-8 px-2 text-center md:text-left">
@@ -256,7 +245,6 @@
                         <button id="clearDataBtn" class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700">Clear All Data</button>
                     </div>
 
-                    <!-- Bulk Actions -->
                     <div class="mt-8 pt-8 border-t border-gray-200">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4">Bulk Color Actions</h2>
                         <div class="space-y-4 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-4">
@@ -282,11 +270,9 @@
 
     <button id="fullScreenToggleBtn" class="fixed right-4 bottom-20 md:bottom-12 z-40 p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 256 256"><path id="fullScreenIconPath" d="M216,48V96a8,8,0,0,1-16,0V67.31l-42.34,42.35a8,8,0,0,1-11.32-11.32L188.69,56H160a8,8,0,0,1,0-16h48A8,8,0,0,1,216,48ZM98.34,146.34,56,188.69V160a8,8,0,0,0-16,0v48a8,8,0,0,0,8,8H96a8,8,0,0,0,0-16H67.31l42.35-42.34a8,8,0,0,0-11.32-11.32ZM208,152a8,8,0,0,0-8,8v28.69l-42.34-42.35a8,8,0,0,0-11.32,11.32L188.69,200H160a8,8,0,0,0,0,16h48a8,8,0,0,0,8-8V160A8,8,0,0,0,208,152ZM67.31,56H96a8,8,0,0,0,0-16H48a8,8,0,0,0-8,8V96a8,8,0,0,0,16,0V67.31l42.34,42.35a8,8,0,0,0,11.32-11.32Z" /></svg></button>
 
-    <!-- Modals -->
     <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none"><div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center"><div id="modalIcon"></div><h3 id="modalTitle" class="text-xl font-bold text-gray-800 mt-4"></h3><p id="modalMessage" class="text-gray-600 mt-2"></p><button id="modalCloseBtn" class="w-full mt-6 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700">OK</button></div></div>
     <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none"><div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100"><svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div><h3 id="confirmModalTitle" class="text-xl font-bold text-gray-800 mt-4">Confirm Action</h3><p id="confirmModalMessage" class="text-gray-600 mt-2"></p><div class="flex justify-center space-x-4 mt-6"><button id="confirmDeleteBtn" class="flex-1 py-2 px-4 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700">Confirm</button><button id="cancelDeleteBtn" class="flex-1 py-2 px-4 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400">Cancel</button></div></div></div>
 
-    <!-- Mobile Nav -->
     <nav class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-custom">
         <div class="flex justify-around max-w-md mx-auto px-2 py-2">
             <a href="#homePage" data-page="homePage" class="nav-link flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 w-1/4 py-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span class="text-xs">Home</span></a>
@@ -484,11 +470,11 @@
                 // Also clear logs? Maybe keep logs of clearing? 
                 // Let's add a clear log
                 addLogToFirestore({
-                     timestamp: Date.now(),
-                     action: 'Cleared All',
-                     message: 'All inventory data cleared.',
-                     itemName: 'All',
-                     itemLot: ''
+                      timestamp: Date.now(),
+                      action: 'Cleared All',
+                      message: 'All inventory data cleared.',
+                      itemName: 'All',
+                      itemLot: ''
                 });
             }
             
@@ -745,6 +731,9 @@
                 let displayGroups = Array.from(groupedItems.entries());
                 if (sortLatestOnTopCheckbox.checked) {
                     displayGroups.sort(([, a], [, b]) => (b.latestUpdate || 0) - (a.latestUpdate || 0));
+                } else {
+                    // Sort alphabetically by default if "Show latest on top" is unchecked
+                    displayGroups.sort(([nameA], [nameB]) => nameA.localeCompare(nameB, 'th'));
                 }
                 const table = document.createElement('table');
                 table.className = 'min-w-full';
@@ -946,7 +935,7 @@
             clearDataBtn.addEventListener('click', () => {
                 showConfirmModal('Clear All Data', 'Permanently delete all inventory data?', () => { 
                     clearAllDataFromFirestore().then(() => {
-                         showModal('Success', 'All inventory data has been cleared.');
+                          showModal('Success', 'All inventory data has been cleared.');
                     });
                 });
             });
