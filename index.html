@@ -84,11 +84,11 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
                     <span>Inventory</span>
                 </a>
-                <a href="#addPage" data-page="addPage" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                <a href="#addPage" data-page="addPage" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100" title="Double tap to reset form">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <span>Add Item</span>
                 </a>
-                <a href="#dashboardPage" data-page="dashboardPage" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                <a href="#dashboardPage" data-page="dashboardPage" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100" title="Double tap to unlock Admin">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                     <span>Dashboard</span>
                 </a>
@@ -230,38 +230,45 @@
                 </div>
 
                 <div id="dashboardPage" class="page bg-white rounded-2xl shadow-custom p-6 md:p-8">
-                    <h1 class="text-3xl font-bold text-gray-800 text-center md:text-left">Dashboard</h1>
-                    <div class="text-indigo-600 mb-8 px-2 text-center md:text-left">
-                        <h2 class="text-2xl font-bold flex items-center justify-center md:justify-start">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 001.414 0l2.414-2.414a1 1 0 01.707-.293H17" /></svg>
-                            นับ Stock RT NU
-                        </h2>
-                    </div>
-                    <p class="text-center md:text-left text-gray-500 mt-2 mb-6">Manage data and sync with Firebase Cloud.</p>
-                    <div class="space-y-4 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-4">
-                        <button id="exportCsvBtn" class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">Export CSV</button>
-                        <label for="importCsvInput" class="cursor-pointer w-full md:w-auto flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Load from CSV</label>
-                        <input type="file" id="importCsvInput" class="hidden" accept=".csv">
-                        <button id="clearDataBtn" class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700">Clear All Data</button>
-                    </div>
+                    <h1 class="text-3xl font-bold text-gray-800 text-center md:text-left mb-6">Dashboard</h1>
 
-                    <div class="mt-8 pt-8 border-t border-gray-200">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Bulk JSON Import</h2>
-                        <p class="text-sm text-gray-500 mb-2">Paste your JSON array here to upload multiple items at once.</p>
-                        <textarea id="jsonImportArea" rows="5" class="w-full p-3 border border-gray-300 rounded-lg text-xs font-mono bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500" placeholder='[{ "name": "Item A", ... }]'></textarea>
-                        <button id="processJsonBtn" class="mt-3 w-full md:w-auto px-6 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700">Upload JSON to Cloud</button>
-                    </div>
-
-                    <div class="mt-8 pt-8 border-t border-gray-200">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Bulk Color Actions</h2>
+                    <!-- Admin Controls (Hidden by default) -->
+                    <div id="adminControls" class="hidden">
+                        <div class="text-indigo-600 mb-8 px-2 text-center md:text-left">
+                            <h2 class="text-2xl font-bold flex items-center justify-center md:justify-start">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 001.414 0l2.414-2.414a1 1 0 01.707-.293H17" /></svg>
+                                นับ Stock RT NU
+                            </h2>
+                        </div>
+                        <p class="text-center md:text-left text-gray-500 mt-2 mb-6">Manage data and sync with Firebase Cloud.</p>
                         <div class="space-y-4 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-4">
-                            <button id="resetColorsBtn" class="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Reset Colors</button>
-                            <button id="setAllPurpleBtn" class="w-full md:w-auto px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700">All Purple</button>
-                            <button id="setBlankToYellowBtn" class="w-full md:w-auto px-4 py-2 bg-yellow-400 text-gray-800 rounded-md text-sm font-medium hover:bg-yellow-500">Blank to Yellow</button>
-                            <button id="setAllYellowBtn" class="w-full md:w-auto px-4 py-2 bg-yellow-400 text-gray-800 rounded-md text-sm font-medium hover:bg-yellow-500">All Yellow</button>
-                            <button id="setAllGreyBtn" class="w-full md:w-auto px-4 py-2 bg-gray-500 text-white rounded-md text-sm font-medium hover:bg-gray-600">All Grey</button>
+                            <button id="exportCsvBtn" class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">Export CSV</button>
+                            <label for="importCsvInput" class="cursor-pointer w-full md:w-auto flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Load from CSV</label>
+                            <input type="file" id="importCsvInput" class="hidden" accept=".csv">
+                            <!-- NEW BUTTON: Reset Values -->
+                            <button id="resetValuesBtn" class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">Reset Values (Keep Items)</button>
+                            <button id="clearDataBtn" class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700">Clear All Data</button>
+                        </div>
+
+                        <div class="mt-8 pt-8 border-t border-gray-200">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-4">Bulk JSON Import</h2>
+                            <p class="text-sm text-gray-500 mb-2">Paste your JSON array here to upload multiple items at once.</p>
+                            <textarea id="jsonImportArea" rows="5" class="w-full p-3 border border-gray-300 rounded-lg text-xs font-mono bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500" placeholder='[{ "name": "Item A", ... }]'></textarea>
+                            <button id="processJsonBtn" class="mt-3 w-full md:w-auto px-6 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700">Upload JSON to Cloud</button>
+                        </div>
+
+                        <div class="mt-8 pt-8 border-t border-gray-200">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-4">Bulk Color Actions</h2>
+                            <div class="space-y-4 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-4">
+                                <button id="resetColorsBtn" class="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Reset Colors</button>
+                                <button id="setAllPurpleBtn" class="w-full md:w-auto px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700">All Purple</button>
+                                <button id="setBlankToYellowBtn" class="w-full md:w-auto px-4 py-2 bg-yellow-400 text-gray-800 rounded-md text-sm font-medium hover:bg-yellow-500">Blank to Yellow</button>
+                                <button id="setAllYellowBtn" class="w-full md:w-auto px-4 py-2 bg-yellow-400 text-gray-800 rounded-md text-sm font-medium hover:bg-yellow-500">All Yellow</button>
+                                <button id="setAllGreyBtn" class="w-full md:w-auto px-4 py-2 bg-gray-500 text-white rounded-md text-sm font-medium hover:bg-gray-600">All Grey</button>
+                            </div>
                         </div>
                     </div>
+                    <!-- End Admin Controls -->
 
                     <div class="mt-8 pt-8 border-t border-gray-200">
                         <div class="flex justify-between items-center mb-4">
@@ -277,8 +284,24 @@
 
     <button id="fullScreenToggleBtn" class="fixed right-4 bottom-20 md:bottom-12 z-40 p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 256 256"><path id="fullScreenIconPath" d="M216,48V96a8,8,0,0,1-16,0V67.31l-42.34,42.35a8,8,0,0,1-11.32-11.32L188.69,56H160a8,8,0,0,1,0-16h48A8,8,0,0,1,216,48ZM98.34,146.34,56,188.69V160a8,8,0,0,0-16,0v48a8,8,0,0,0,8,8H96a8,8,0,0,0,0-16H67.31l42.35-42.34a8,8,0,0,0-11.32-11.32ZM208,152a8,8,0,0,0-8,8v28.69l-42.34-42.35a8,8,0,0,0-11.32,11.32L188.69,200H160a8,8,0,0,0,0,16h48a8,8,0,0,0,8-8V160A8,8,0,0,0,208,152ZM67.31,56H96a8,8,0,0,0,0-16H48a8,8,0,0,0-8,8V96a8,8,0,0,0,16,0V67.31l42.34,42.35a8,8,0,0,0,11.32-11.32Z" /></svg></button>
 
+    <!-- General Modal -->
     <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none"><div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center"><div id="modalIcon"></div><h3 id="modalTitle" class="text-xl font-bold text-gray-800 mt-4"></h3><p id="modalMessage" class="text-gray-600 mt-2"></p><button id="modalCloseBtn" class="w-full mt-6 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700">OK</button></div></div>
+    
+    <!-- Confirm Modal -->
     <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none"><div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100"><svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div><h3 id="confirmModalTitle" class="text-xl font-bold text-gray-800 mt-4">Confirm Action</h3><p id="confirmModalMessage" class="text-gray-600 mt-2"></p><div class="flex justify-center space-x-4 mt-6"><button id="confirmDeleteBtn" class="flex-1 py-2 px-4 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700">Confirm</button><button id="cancelDeleteBtn" class="flex-1 py-2 px-4 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400">Cancel</button></div></div></div>
+
+    <!-- Password Modal -->
+    <div id="passwordModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none">
+        <div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Admin Access</h3>
+            <p class="text-gray-600 mb-4 text-sm">Enter password to unlock data management.</p>
+            <input type="password" id="adminPasswordInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4" placeholder="Enter password">
+            <div class="flex space-x-2">
+                <button id="submitPasswordBtn" class="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold">Unlock</button>
+                <button id="cancelPasswordBtn" class="flex-1 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold">Cancel</button>
+            </div>
+        </div>
+    </div>
 
     <nav class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-custom">
         <div class="flex justify-around max-w-md mx-auto px-2 py-2">
@@ -326,6 +349,7 @@
             const importCsvInput = document.getElementById('importCsvInput');
             const searchInput = document.getElementById('searchInput');
             const clearDataBtn = document.getElementById('clearDataBtn');
+            const resetValuesBtn = document.getElementById('resetValuesBtn'); 
             const clearSearchBtn = document.getElementById('clearSearchBtn');
             const sortLatestOnTopCheckbox = document.getElementById('sortLatestOnTop');
             const showTimeCheckbox = document.getElementById('showTime');
@@ -347,6 +371,7 @@
             const lastSyncTimeEl = document.getElementById('lastSyncTime');
             const jsonImportArea = document.getElementById('jsonImportArea');
             const processJsonBtn = document.getElementById('processJsonBtn');
+            const adminControls = document.getElementById('adminControls');
 
             // Modals
             const customModal = document.getElementById('customModal');
@@ -359,17 +384,26 @@
             const confirmModalMessage = document.getElementById('confirmModalMessage');
             const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
             const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+            
+            // Password Modal
+            const passwordModal = document.getElementById('passwordModal');
+            const adminPasswordInput = document.getElementById('adminPasswordInput');
+            const submitPasswordBtn = document.getElementById('submitPasswordBtn');
+            const cancelPasswordBtn = document.getElementById('cancelPasswordBtn');
 
             // State
             let inventory = [];
             let logActivity = []; 
-            let editItemId = null; // Changed from editIndex to editItemId
+            let editItemId = null; 
             let prefillNameForNewLot = '';
             let expandedGroups = {};
             let realTimeUpdateInterval;
             let itemToScrollTo = null;
             let modalCallback = null;
             let editOriginPage = 'homePage';
+            let lastAddClickTime = 0; 
+            let lastDashboardClickTime = 0; // NEW for Dashboard Double Tap
+
             const DEFAULT_MAX_WIDTH_CLASS = 'max-w-4xl';
             const FIFTEEN_SECONDS = 15 * 1000;
             const FIVE_MINUTES = 5 * 60 * 1000;
@@ -393,15 +427,12 @@
 
                 // Listener 1: Inventory Collection
                 db.collection('inventory').onSnapshot((snapshot) => {
-                    // FIX: Hide loading IMMEDIATELY so app doesn't freeze if render fails
                     showLoading(false); 
                     
                     inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     
-                    // Backup locally (optional, for offline viewing if implemented later)
                     localStorage.setItem('stockInventory', JSON.stringify(inventory));
                     
-                    // FIX: Wrap render in try-catch to prevent crash from bad data
                     try {
                         refreshUI();
                         updateLastSyncTime();
@@ -434,8 +465,6 @@
             // --- FIRESTORE CRUD OPERATIONS ---
             
             function addItemToFirestore(item) {
-                // Ensure unique ID if not present (although add() creates one, we might want to control it or use the ref)
-                // Using .add() lets Firestore generate the ID
                 db.collection('inventory').add(item)
                     .then(() => {
                         console.log("Document successfully written!");
@@ -466,7 +495,6 @@
             }
 
             async function clearAllDataFromFirestore() {
-                // Batch delete inventory (chunked if necessary, simple loop for now)
                 const snapshot = await db.collection('inventory').get();
                 const batchSize = 400; 
                 let batch = db.batch();
@@ -483,8 +511,6 @@
                 });
                 if (count > 0) await batch.commit();
 
-                // Also clear logs? Maybe keep logs of clearing? 
-                // Let's add a clear log
                 addLogToFirestore({
                       timestamp: Date.now(),
                       action: 'Cleared All',
@@ -492,6 +518,33 @@
                       itemName: 'All',
                       itemLot: ''
                 });
+            }
+
+            async function resetValuesInFirestore() {
+                const snapshot = await db.collection('inventory').get();
+                const batchSize = 400; 
+                let batch = db.batch();
+                let count = 0;
+                let processedCount = 0;
+
+                snapshot.docs.forEach((doc) => {
+                    // Update only quantity, systemStock, and lot
+                    batch.update(doc.ref, {
+                        quantity: 0,
+                        systemStock: 0,
+                        lot: '' 
+                    });
+                    count++;
+                    processedCount++;
+                    if (count >= batchSize) {
+                        batch.commit();
+                        batch = db.batch();
+                        count = 0;
+                    }
+                });
+                if (count > 0) await batch.commit();
+                
+                return processedCount;
             }
             
             async function bulkUpdateColorInFirestore(color, conditionFn = () => true) {
@@ -570,6 +623,31 @@
                 confirmModal.classList.add('opacity-0');
                 confirmModal.querySelector('.modal-content').style.transform = 'translateY(-20px) scale(0.95)';
                 setTimeout(() => confirmModal.classList.add('pointer-events-none'), 300);
+            }
+
+            // NEW: Password Modal Functions
+            function showPasswordModal() {
+                passwordModal.classList.remove('opacity-0', 'pointer-events-none');
+                passwordModal.querySelector('.modal-content').style.transform = 'translateY(0) scale(1)';
+                adminPasswordInput.value = '';
+                adminPasswordInput.focus();
+            }
+
+            function hidePasswordModal() {
+                passwordModal.classList.add('opacity-0');
+                passwordModal.querySelector('.modal-content').style.transform = 'translateY(-20px) scale(0.95)';
+                setTimeout(() => passwordModal.classList.add('pointer-events-none'), 300);
+            }
+
+            function handlePasswordSubmit() {
+                if (adminPasswordInput.value === 'getadmin') {
+                    adminControls.classList.remove('hidden');
+                    hidePasswordModal();
+                    showModal('Access Granted', 'Admin controls unlocked.', 'success');
+                } else {
+                    showModal('Access Denied', 'Incorrect password.', 'error');
+                    adminPasswordInput.value = '';
+                }
             }
 
             function scrollToItem(itemName) {
@@ -684,12 +762,10 @@
                     itemName: newItem?.name || oldItem?.name || '',
                     itemLot: newItem?.lot || oldItem?.lot || '',
                     message: generateLogMessage(action, newItem, oldItem),
-                    // oldState and newState might be too big for logs, strictly keeping message is cleaner
                 };
                 addLogToFirestore(logData);
             }
 
-            // FIX: Robust normalization to handle missing fields from JSON
             function normalizeItem(item) {
                 return {
                     ...item,
@@ -713,7 +789,7 @@
                 inventory.map(normalizeItem).forEach((item, originalIndex) => {
                     const itemNameKey = item.name.toLowerCase();
                     if (!groupedItems.has(itemNameKey)) groupedItems.set(itemNameKey, []);
-                    groupedItems.get(itemNameKey).push({ ...item, originalIndex }); // index not needed for delete now, we use ID
+                    groupedItems.get(itemNameKey).push({ ...item, originalIndex }); 
                 });
                 const sortedGroupedItems = Array.from(groupedItems.entries()).sort(([keyA], [keyB]) => keyA.localeCompare(keyB));
                 for (const [nameKey, lots] of sortedGroupedItems) {
@@ -739,7 +815,6 @@
                 }
             }
 
-            // FIX: Rewrite renderHomeInventoryTable to be crash-proof with safe sorting
             function renderHomeInventoryTable() {
                 homeInventoryTableContainer.innerHTML = inventory.length === 0 ? `<p class="text-center text-gray-500 py-8">No items in inventory to display.</p>` : '';
                 if (inventory.length === 0) return;
@@ -759,7 +834,6 @@
 
                 let displayGroups = Array.from(groupedItems.entries());
                 
-                // Safe sorting logic
                 if (sortLatestOnTopCheckbox.checked) {
                     displayGroups.sort(([, a], [, b]) => (b.latestUpdate || 0) - (a.latestUpdate || 0));
                 } else {
@@ -873,7 +947,40 @@
             systemIncrementBtn.addEventListener('click', () => systemStockInput.value = parseInt(systemStockInput.value, 10) + 1);
             systemDecrementBtn.addEventListener('click', () => { if (parseInt(systemStockInput.value, 10) > 0) systemStockInput.value = parseInt(systemStockInput.value, 10) - 1; });
             systemResetBtn.addEventListener('click', () => systemStockInput.value = 0);
-            navLinks.forEach(link => link.addEventListener('click', (e) => { e.preventDefault(); showPage(link.dataset.page); }));
+            
+            // Modified Navigation for Double Tap Logic
+            navLinks.forEach(link => link.addEventListener('click', (e) => { 
+                e.preventDefault(); 
+                const targetPage = link.dataset.page;
+                
+                // Double Tap Logic for Add Page
+                if (targetPage === 'addPage') {
+                    const currentTime = new Date().getTime();
+                    const timeDiff = currentTime - lastAddClickTime;
+                    
+                    if (timeDiff < 300 && timeDiff > 0) {
+                        editItemId = null;
+                        prefillNameForNewLot = '';
+                        editOriginPage = 'homePage';
+                        showModal('Form Reset', 'Add Page reset to default new item mode.', 'success');
+                    }
+                    lastAddClickTime = currentTime;
+                }
+                
+                // NEW: Double Tap Logic for Dashboard (Admin Unlock)
+                if (targetPage === 'dashboardPage') {
+                    const currentTime = new Date().getTime();
+                    const timeDiff = currentTime - lastDashboardClickTime;
+                    
+                    if (timeDiff < 300 && timeDiff > 0) {
+                        showPasswordModal();
+                    }
+                    lastDashboardClickTime = currentTime;
+                }
+
+                showPage(targetPage); 
+            }));
+
             fullScreenToggleBtn.addEventListener('click', toggleFullScreen);
             itemTypeSelector.addEventListener('click', (e) => { const targetBtn = e.target.closest('.item-type-btn'); if (targetBtn) setItemType(targetBtn.dataset.type); });
             modalCloseBtn.addEventListener('click', handleModalClose);
@@ -922,10 +1029,7 @@
                 const color = selectedColorEl ? selectedColorEl.dataset.color : null;
                 const itemType = stockItemTypeInput.value;
 
-                // 1. Only Name is strictly required now
                 if (!name) return showModal('Fields Required', 'Please enter a Name.', 'error');
-                
-                // 2. Prevent negative numbers but allow 0
                 if (quantity < 0 || systemStock < 0) return showModal('Invalid Value', 'Stock cannot be negative.', 'error');
                 
                 const newItemData = { name, unit, lot, quantity, systemStock, notes, color, itemType, lastUpdated: Date.now() };
@@ -941,7 +1045,6 @@
                     editItemId = null;
                     editOriginPage = 'homePage';
                 } else {
-                    // 3. Duplicate check only runs if a lot is provided
                     if (lot && inventory.some(item => item.name === name && item.lot === lot)) {
                         return showModal('Duplicate Lot', `Lot '${lot}' already exists for item '${name}'.`, 'error');
                     }
@@ -976,6 +1079,21 @@
                 });
             });
 
+            resetValuesBtn.addEventListener('click', () => {
+                showConfirmModal('Reset Values', 'Set all items to 0 count, 0 system, and clear lots? (Name/Unit/Type/Color will remain)', async () => {
+                    const count = await resetValuesInFirestore();
+                    addLogEntry('Updated', { name: `Bulk Reset: ${count} items` }, { name: 'Reset Values' });
+                    showModal('Success', `${count} items have been reset to default values.`);
+                });
+            });
+
+            // Password Modal Events
+            submitPasswordBtn.addEventListener('click', handlePasswordSubmit);
+            cancelPasswordBtn.addEventListener('click', hidePasswordModal);
+            adminPasswordInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') handlePasswordSubmit();
+            });
+
             // --- Bulk JSON Import Logic ---
             processJsonBtn.addEventListener('click', async () => {
                 const rawData = jsonImportArea.value.trim();
@@ -990,22 +1108,18 @@
                     let count = 0;
 
                     dataArray.forEach(item => {
-                        // Clean the data: Remove the old ID so Firestore generates a new one
                         const { id, ...cleanItem } = item; 
-                        
-                        // Ensure numbers are actually numbers
                         cleanItem.quantity = Number(cleanItem.quantity) || 0;
                         cleanItem.systemStock = Number(cleanItem.systemStock) || 0;
                         cleanItem.lastUpdated = cleanItem.lastUpdated || Date.now();
 
-                        const docRef = db.collection('inventory').doc(); // Create new doc reference
+                        const docRef = db.collection('inventory').doc(); 
                         batch.set(docRef, cleanItem);
                         count++;
                     });
 
                     await batch.commit();
                     
-                    // Log the action
                     addLogToFirestore({
                         timestamp: Date.now(),
                         action: 'Bulk Import',
@@ -1015,7 +1129,7 @@
                     });
 
                     showLoading(false);
-                    jsonImportArea.value = ''; // Clear the box
+                    jsonImportArea.value = ''; 
                     showModal('Success', `Successfully uploaded ${count} items to Firestore.`);
                     
                 } catch (e) {
