@@ -188,7 +188,7 @@
                                 </div>
                                 <div>
                                     <label for="stockLot" class="block text-sm font-medium text-gray-700">Lot</label>
-                                    <input type="text" id="stockLot" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., LOT202401">
+                                    <input type="text" id="stockLot" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., LOT202401">
                                 </div>
                                 <div>
                                     <label for="stockNotes" class="block text-sm font-medium text-gray-700">Notes</label>
@@ -897,8 +897,11 @@
                 const color = selectedColorEl ? selectedColorEl.dataset.color : null;
                 const itemType = stockItemTypeInput.value;
 
-                if (!name || !lot) return showModal('Fields Required', 'Please enter a Name and Lot number.', 'error');
-                if (quantity <= 0 && systemStock <= 0 && !editItemId) return showModal('Quantity Required', 'Please set a quantity or system stock greater than zero.', 'error');
+                // 1. Only Name is strictly required now
+                if (!name) return showModal('Fields Required', 'Please enter a Name.', 'error');
+                
+                // 2. Prevent negative numbers but allow 0
+                if (quantity < 0 || systemStock < 0) return showModal('Invalid Value', 'Stock cannot be negative.', 'error');
                 
                 const newItemData = { name, unit, lot, quantity, systemStock, notes, color, itemType, lastUpdated: Date.now() };
                 
@@ -913,7 +916,10 @@
                     editItemId = null;
                     editOriginPage = 'homePage';
                 } else {
-                    if (inventory.some(item => item.name === name && item.lot === lot)) return showModal('Duplicate Lot', `Lot '${lot}' already exists for item '${name}'.`, 'error');
+                    // 3. Duplicate check only runs if a lot is provided
+                    if (lot && inventory.some(item => item.name === name && item.lot === lot)) {
+                        return showModal('Duplicate Lot', `Lot '${lot}' already exists for item '${name}'.`, 'error');
+                    }
                     addItemToFirestore(newItemData);
                     addLogEntry('Added', newItemData);
                     itemToScrollTo = newItemData.name;
