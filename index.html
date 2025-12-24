@@ -393,14 +393,21 @@
 
                 // Listener 1: Inventory Collection
                 db.collection('inventory').onSnapshot((snapshot) => {
+                    // FIX: Hide loading IMMEDIATELY so app doesn't freeze if render fails
+                    showLoading(false); 
+                    
                     inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     
                     // Backup locally (optional, for offline viewing if implemented later)
                     localStorage.setItem('stockInventory', JSON.stringify(inventory));
                     
-                    refreshUI();
-                    updateLastSyncTime();
-                    showLoading(false);
+                    // FIX: Wrap render in try-catch to prevent crash from bad data
+                    try {
+                        refreshUI();
+                        updateLastSyncTime();
+                    } catch (e) {
+                        console.error("Rendering Error:", e);
+                    }
                 }, (error) => {
                     console.error("Inventory Sync Error:", error);
                     showLoading(false);
@@ -682,10 +689,20 @@
                 addLogToFirestore(logData);
             }
 
+            // FIX: Robust normalization to handle missing fields from JSON
             function normalizeItem(item) {
-                item.itemType = item.itemType || 'Consumption';
-                item.systemStock = item.systemStock || 0;
-                return item;
+                return {
+                    ...item,
+                    name: (item.name || "Unknown Item").toString(),
+                    itemType: item.itemType || 'Consumption',
+                    systemStock: Number(item.systemStock) || 0,
+                    quantity: Number(item.quantity) || 0,
+                    lastUpdated: (typeof item.lastUpdated === 'number' && !isNaN(item.lastUpdated)) ? item.lastUpdated : Date.now(),
+                    unit: item.unit || '',
+                    lot: item.lot || '',
+                    notes: item.notes || '',
+                    color: item.color || null
+                };
             }
 
             function renderInventory() {
@@ -722,9 +739,11 @@
                 }
             }
 
+            // FIX: Rewrite renderHomeInventoryTable to be crash-proof with safe sorting
             function renderHomeInventoryTable() {
                 homeInventoryTableContainer.innerHTML = inventory.length === 0 ? `<p class="text-center text-gray-500 py-8">No items in inventory to display.</p>` : '';
                 if (inventory.length === 0) return;
+                
                 const groupedItems = new Map();
                 inventory.map(normalizeItem).forEach((item, originalIndex) => {
                     const group = groupedItems.get(item.name);
@@ -737,18 +756,26 @@
                         if (item.lastUpdated > group.latestUpdate) group.latestUpdate = item.lastUpdated;
                     }
                 });
+
                 let displayGroups = Array.from(groupedItems.entries());
+                
+                // Safe sorting logic
                 if (sortLatestOnTopCheckbox.checked) {
                     displayGroups.sort(([, a], [, b]) => (b.latestUpdate || 0) - (a.latestUpdate || 0));
                 } else {
-                    // Sort alphabetically by default (using Thai locale) if "Show latest on top" is unchecked
-                    displayGroups.sort(([nameA], [nameB]) => nameA.localeCompare(nameB, 'th'));
+                    displayGroups.sort(([nameA], [nameB]) => {
+                        const a = nameA || "";
+                        const b = nameB || "";
+                        return a.localeCompare(b, 'th');
+                    });
                 }
+
                 const table = document.createElement('table');
                 table.className = 'min-w-full';
                 table.innerHTML = `<thead class="bg-gray-50"><tr><th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name / Type</th><th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Qty (Count)</th><th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">System Stock</th><th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lot</th><th scope="col" class="time-col px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th><th scope="col" class="notes-col px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th></tr></thead><tbody class="bg-white divide-y divide-gray-200"></tbody>`;
                 const tableBody = table.querySelector('tbody');
                 const colorMap = { green: 'bg-green-500', yellow: 'bg-yellow-400', orange: 'bg-orange-400', red: 'bg-red-500', purple: 'bg-purple-500', grey: 'bg-gray-400' };
+                
                 displayGroups.forEach(([name, group]) => {
                     const uniqueColors = [...new Set(group.lots.map(lot => lot.color).filter(c => c))];
                     const uniqueItemTypes = [...new Set(group.lots.map(lot => lot.itemType).filter(t => t))];
@@ -764,7 +791,7 @@
                         groupHeaderRow.dataset.timestamp = group.latestUpdate;
                         groupHeaderRow.innerHTML = `<td class="px-4 py-4 text-sm font-medium text-gray-900"><div class="flex items-center">${colorDotsHtml}<svg class="w-4 h-4 mr-2 transform transition-transform ${isExpanded ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg><div>${name} ${itemTypeBadgesHtml}</div></div></td><td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-indigo-600" title="Expand to edit individual lots">${group.totalQuantity} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-blue-600" title="Expand to edit individual lots">${group.totalSystemStock} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">(${group.lots.length} lots)</td><td class="time-col time-cell px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td><td class="notes-col px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td>`;
                         group.lots.sort((a,b) => (a.lot || '').localeCompare(b.lot || '')).forEach(lot => {
-                            const lotColorDot = lot.color ? `<span class="inline-block w-2 h-2 ${colorMap[lot.color] || ''} rounded-full mr-2 flex-shrink-0" title="${color}"></span>` : '';
+                            const lotColorDot = lot.color ? `<span class="inline-block w-2 h-2 ${colorMap[lot.color] || ''} rounded-full mr-2 flex-shrink-0" title="${lot.color}"></span>` : '';
                             const lotTypeBadge = `<span class="text-xs ${lot.itemType === 'Key' ? 'text-blue-500' : 'text-orange-500'} font-medium ml-1">${lot.itemType ? (lot.itemType.startsWith('C') ? '(C)' : '(K)') : ''}</span>`;
                             const lotRow = tableBody.insertRow();
                             lotRow.className = `lot-row border-l-4 border-gray-200 ${isExpanded ? '' : 'hidden'}`;
