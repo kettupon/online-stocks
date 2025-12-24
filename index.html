@@ -3,19 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>นับ Stock (Firebase Firestore)</title>
-    <!-- Tailwind CSS for styling -->
+    <title>นับ Stock (Connected)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Noto Sans Thai -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Firebase SDKs (Compat versions for ease of use in vanilla JS) -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <!-- Switched from database-compat to firestore-compat -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
     <style>
         /* Custom styles for the app */
         body { font-family: 'Noto Sans Thai', sans-serif; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -64,14 +56,12 @@
     </style>
 </head>
 <body class="bg-gray-100">
-    <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 bg-white bg-opacity-80 z-50 flex flex-col items-center justify-center hidden opacity-0 pointer-events-none">
         <div class="spinner mb-4"></div>
-        <p class="text-indigo-600 font-semibold" id="loadingText">Connecting to Firestore...</p>
+        <p class="text-indigo-600 font-semibold" id="loadingText">Syncing with Google Sheets...</p>
     </div>
 
     <div class="md:flex">
-        <!-- Sidebar Navigation for Desktop -->
         <nav class="hidden md:flex md:flex-col md:w-64 md:h-screen md:bg-white md:border-r md:border-gray-200 md:p-4">
             <div class="text-indigo-600 mb-8 px-2">
                 <h2 class="text-2xl font-bold flex items-center">
@@ -99,20 +89,20 @@
                     <span>Dashboard</span>
                 </a>
             </div>
-            <!-- Sync Status Indicator -->
             <div id="syncStatus" class="mt-auto px-2 py-4 text-xs text-center text-gray-400">
-                <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span> Firestore Sync Active<br>
-                Last update: <span id="lastSyncTime">Waiting...</span>
+                Last synced: <span id="lastSyncTime">Never</span>
             </div>
         </nav>
 
-        <!-- Main Content Area -->
         <main class="flex-1 p-4 md:p-8 pb-24 md:pb-8">
             <div id="mainContentWrapper" class="max-w-4xl mx-auto">
-                <!-- Add Page -->
                 <div id="addPage" class="page">
                     <div class="flex justify-between items-center mb-6">
                         <h1 class="text-3xl font-bold text-gray-800">Add Item</h1>
+                        <button id="manualSyncBtn" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                            Sync Cloud
+                        </button>
                     </div>
                     <div class="md:grid md:grid-cols-3 md:gap-4 lg:gap-8">
                         <div class="bg-white rounded-2xl shadow-custom p-6 md:p-8 text-center flex flex-col justify-between mb-8 md:mb-0">
@@ -205,7 +195,6 @@
                     </div>
                 </div>
 
-                <!-- Inventory Page -->
                 <div id="inventoryPage" class="page bg-white rounded-2xl shadow-custom p-6 md:p-8">
                     <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
                         <h1 class="text-3xl font-bold text-gray-800">Inventory</h1>
@@ -227,7 +216,6 @@
                     <div id="inventoryList" class="space-y-4"></div>
                 </div>
 
-                <!-- Home Page -->
                 <div id="homePage" class="page bg-white rounded-2xl shadow-custom p-6 md:p-8">
                     <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
                         <h1 class="text-3xl font-bold text-gray-800">Inventory Overview</h1>
@@ -240,7 +228,6 @@
                     <div id="homeInventoryTableContainer" class="overflow-x-auto"></div>
                 </div>
 
-                <!-- Dashboard Page -->
                 <div id="dashboardPage" class="page bg-white rounded-2xl shadow-custom p-6 md:p-8">
                     <h1 class="text-3xl font-bold text-gray-800 text-center md:text-left">Dashboard</h1>
                     <div class="text-indigo-600 mb-8 px-2 text-center md:text-left">
@@ -249,7 +236,7 @@
                             นับ Stock RT NU
                         </h2>
                     </div>
-                    <p class="text-center md:text-left text-gray-500 mt-2 mb-6">Manage data and sync with Firebase Cloud.</p>
+                    <p class="text-center md:text-left text-gray-500 mt-2 mb-6">Manage data and sync with Google Sheets.</p>
                     <div class="space-y-4 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-4">
                         <button id="exportCsvBtn" class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">Export CSV</button>
                         <label for="importCsvInput" class="cursor-pointer w-full md:w-auto flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Load from CSV</label>
@@ -257,7 +244,6 @@
                         <button id="clearDataBtn" class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700">Clear All Data</button>
                     </div>
 
-                    <!-- Bulk Actions -->
                     <div class="mt-8 pt-8 border-t border-gray-200">
                         <h2 class="text-2xl font-bold text-gray-800 mb-4">Bulk Color Actions</h2>
                         <div class="space-y-4 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-4">
@@ -283,11 +269,9 @@
 
     <button id="fullScreenToggleBtn" class="fixed right-4 bottom-20 md:bottom-12 z-40 p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 256 256"><path id="fullScreenIconPath" d="M216,48V96a8,8,0,0,1-16,0V67.31l-42.34,42.35a8,8,0,0,1-11.32-11.32L188.69,56H160a8,8,0,0,1,0-16h48A8,8,0,0,1,216,48ZM98.34,146.34,56,188.69V160a8,8,0,0,0-16,0v48a8,8,0,0,0,8,8H96a8,8,0,0,0,0-16H67.31l42.35-42.34a8,8,0,0,0-11.32-11.32ZM208,152a8,8,0,0,0-8,8v28.69l-42.34-42.35a8,8,0,0,0-11.32,11.32L188.69,200H160a8,8,0,0,0,0,16h48a8,8,0,0,0,8-8V160A8,8,0,0,0,208,152ZM67.31,56H96a8,8,0,0,0,0-16H48a8,8,0,0,0-8,8V96a8,8,0,0,0,16,0V67.31l42.34,42.35a8,8,0,0,0,11.32-11.32Z" /></svg></button>
 
-    <!-- Modals -->
     <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none"><div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center"><div id="modalIcon"></div><h3 id="modalTitle" class="text-xl font-bold text-gray-800 mt-4"></h3><p id="modalMessage" class="text-gray-600 mt-2"></p><button id="modalCloseBtn" class="w-full mt-6 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700">OK</button></div></div>
     <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none"><div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100"><svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div><h3 id="confirmModalTitle" class="text-xl font-bold text-gray-800 mt-4">Confirm Action</h3><p id="confirmModalMessage" class="text-gray-600 mt-2"></p><div class="flex justify-center space-x-4 mt-6"><button id="confirmDeleteBtn" class="flex-1 py-2 px-4 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700">Confirm</button><button id="cancelDeleteBtn" class="flex-1 py-2 px-4 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400">Cancel</button></div></div></div>
 
-    <!-- Mobile Nav -->
     <nav class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-custom">
         <div class="flex justify-around max-w-md mx-auto px-2 py-2">
             <a href="#homePage" data-page="homePage" class="nav-link flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 w-1/4 py-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span class="text-xs">Home</span></a>
@@ -298,20 +282,9 @@
     </nav>
 
     <script>
-        // --- FIREBASE CONFIGURATION ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyBi1b67w4JfbB6PNuUmK5VFiaLCLuqOs0s",
-            authDomain: "online-stocksrt.firebaseapp.com",
-            projectId: "online-stocksrt",
-            storageBucket: "online-stocksrt.firebasestorage.app",
-            messagingSenderId: "603503470996",
-            appId: "1:603503470996:web:3732ac3fd3a8d0a5eb4781"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        // Initializing Firestore instead of Realtime Database
-        const db = firebase.firestore();
+        // --- API CONFIGURATION ---
+        // เปลี่ยน URL นี้เป็น Web App URL ของคุณเอง
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyy8WUXBisRiIJBykeJjVYfujj7-Db2zMM35SiZg0oBJqqPLA-PJa8zRVCTepl1OuwoXA/exec';
         
         document.addEventListener('DOMContentLoaded', () => {
             const ARROWS_OUT_PATH = "M216,48V96a8,8,0,0,1-16,0V67.31l-42.34,42.35a8,8,0,0,1-11.32-11.32L188.69,56H160a8,8,0,0,1,0-16h48A8,8,0,0,1,216,48ZM98.34,146.34,56,188.69V160a8,8,0,0,0-16,0v48a8,8,0,0,0,8,8H96a8,8,0,0,0,0-16H67.31l42.35-42.34a8,8,0,0,0-11.32-11.32ZM208,152a8,8,0,0,0-8,8v28.69l-42.34-42.35a8,8,0,0,0-11.32,11.32L188.69,200H160a8,8,0,0,0,0,16h48a8,8,0,0,0,8-8V160A8,8,0,0,0,208,152ZM67.31,56H96a8,8,0,0,0,0-16H48a8,8,0,0,0-8,8V96a8,8,0,0,0,16,0V67.31l42.34,42.35a8,8,0,0,0,11.32-11.32Z";
@@ -353,6 +326,7 @@
             const setAllYellowBtn = document.getElementById('setAllYellowBtn');
             const setBlankToYellowBtn = document.getElementById('setBlankToYellowBtn');
             const loadingOverlay = document.getElementById('loadingOverlay');
+            const manualSyncBtn = document.getElementById('manualSyncBtn');
             const lastSyncTimeEl = document.getElementById('lastSyncTime');
 
             // Modals
@@ -384,7 +358,7 @@
             const ONE_MONTH = 30 * 24 * 60 * 60 * 1000;
             const FORTY_FIVE_DAYS = 45 * 24 * 60 * 60 * 1000;
 
-            // --- API FUNCTIONS (FIRESTORE) ---
+            // --- API FUNCTIONS ---
             function showLoading(show) {
                 if (show) {
                     loadingOverlay.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
@@ -394,49 +368,53 @@
                 }
             }
 
-            // Real-time listener: Updated for Cloud Firestore
-            function startLiveSync() {
-                showLoading(true);
-                // We use a single document for the entire stock system for simplicity in this MVP
-                const docRef = db.collection('inventorySystem').doc('mainData');
-                
-                docRef.onSnapshot((doc) => {
-                    if (doc.exists) {
-                        const data = doc.data();
+            // Updated loadFromCloud with Silent Mode
+            async function loadFromCloud(isSilent = false) {
+                if (!isSilent) showLoading(true);
+                try {
+                    const response = await fetch(API_URL);
+                    const data = await response.json();
+                    if (data.status === 'success') {
                         inventory = data.inventory || [];
                         logActivity = data.logs || [];
                         
-                        // Update LocalStorage as backup
                         localStorage.setItem('stockInventory', JSON.stringify(inventory));
                         localStorage.setItem('stockActivityLog', JSON.stringify(logActivity));
                         
-                        // Refresh UI
-                        const currentPage = document.querySelector('.page.active')?.id || 'homePage';
-                        if (currentPage === 'inventoryPage') renderInventory();
-                        if (currentPage === 'homePage') renderHomeInventoryTable();
-                        if (currentPage === 'dashboardPage') renderActivityLog();
+                        // Re-render UI
+                        if (document.getElementById('inventoryPage').classList.contains('active')) renderInventory();
+                        if (document.getElementById('homePage').classList.contains('active')) renderHomeInventoryTable();
+                        if (document.getElementById('dashboardPage').classList.contains('active')) renderActivityLog();
                         
                         updateLastSyncTime();
+                        if (!isSilent) console.log('Loaded from cloud successfully');
+                    } else {
+                        if (!isSilent) throw new Error(data.message || 'Unknown error');
                     }
-                    showLoading(false);
-                }, (error) => {
-                    console.error("Firestore Sync Error:", error);
-                    showLoading(false);
-                });
+                } catch (e) {
+                    console.error('Load Error:', e);
+                    if (!isSilent) showModal('Sync Error', 'Failed to load data from Google Sheets. Working offline for now.', 'error');
+                } finally {
+                    if (!isSilent) showLoading(false);
+                }
             }
 
             async function saveToCloud() {
                 try {
-                    await db.collection('inventorySystem').doc('mainData').set({
+                    const payload = JSON.stringify({
                         inventory: inventory,
-                        logs: logActivity,
-                        lastUpdated: Date.now()
+                        logs: logActivity
+                    });
+                    
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        body: payload,
+                        headers: { "Content-Type": "text/plain;charset=utf-8" }
                     });
                     updateLastSyncTime();
-                    console.log('Saved to Firestore');
+                    console.log('Saved to cloud');
                 } catch (e) {
-                    console.error("Firestore Save Error:", e);
-                    showModal('Save Error', 'Could not save to Cloud Firestore. Check your connection or rules.', 'error');
+                    console.error('Save Error:', e);
                 }
             }
 
@@ -446,12 +424,131 @@
             }
 
             function saveState() {
-                // Save locally first (Optimistic UI)
                 localStorage.setItem('stockInventory', JSON.stringify(inventory));
                 localStorage.setItem('stockActivityLog', JSON.stringify(logActivity));
-                // Then sync to cloud
                 saveToCloud();
             }
+
+            // --- AUTO SYNC LOGIC (5 Seconds Interval) ---
+            const SYNC_INTERVAL = 5000; 
+            function startAutoSync() {
+                setInterval(async () => {
+                    // Sync silently if not manually editing an item (editIndex === -1)
+                    if (loadingOverlay.classList.contains('hidden') && editIndex === -1) {
+                         await loadFromCloud(true); // true = silent mode
+                    }
+                }, SYNC_INTERVAL);
+            }
+            startAutoSync();
+
+            // --- EXPORT / IMPORT CSV ---
+            
+            // Export CSV Logic
+            exportCsvBtn.addEventListener('click', () => {
+                if (inventory.length === 0) {
+                    showModal('No Data', 'No inventory data to export.', 'error');
+                    return;
+                }
+
+                const headers = ['Name', 'Quantity', 'Unit', 'Lot', 'SystemStock', 'LastUpdated', 'Notes', 'Color', 'ItemType'];
+                const csvRows = [headers.join(',')];
+
+                inventory.forEach(item => {
+                    const row = [
+                        `"${(item.name || '').replace(/"/g, '""')}"`,
+                        item.quantity,
+                        `"${(item.unit || '').replace(/"/g, '""')}"`,
+                        `"${(item.lot || '').replace(/"/g, '""')}"`,
+                        item.systemStock || 0,
+                        item.lastUpdated,
+                        `"${(item.notes || '').replace(/"/g, '""')}"`,
+                        `"${item.color || ''}"`,
+                        `"${item.itemType || 'Consumption'}"`
+                    ];
+                    csvRows.push(row.join(','));
+                });
+
+                const csvString = csvRows.join('\n');
+                const blob = new Blob(['\ufeff' + csvString], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', `Stock_Export_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showModal('Success', 'CSV exported successfully.', 'success');
+            });
+
+            // Import CSV Logic
+            importCsvInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const csvData = event.target.result;
+                    const rows = csvData.split(/\r?\n/);
+                    if (rows.length < 2) return;
+
+                    const headers = rows[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+                    const newInventory = [];
+
+                    for (let i = 1; i < rows.length; i++) {
+                        const rowText = rows[i].trim();
+                        if (!rowText) continue;
+
+                        // Basic CSV parser to handle quoted strings
+                        const matches = rowText.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []; 
+                        // Note: A robust regex split is better, but simple split helps if simple CSV
+                        // Let's use a simpler approach assuming standard format from our export
+                        
+                        // Simple CSV split handling quotes
+                        let row = [];
+                        let inQuote = false;
+                        let current = '';
+                        for(let char of rowText) {
+                            if(char === '"') { inQuote = !inQuote; continue; }
+                            if(char === ',' && !inQuote) { row.push(current); current = ''; continue; }
+                            current += char;
+                        }
+                        row.push(current);
+
+                        if (row.length < 2) continue;
+
+                        const item = {
+                            id: crypto.randomUUID(),
+                            name: (row[0] || '').trim(),
+                            quantity: parseInt(row[1]) || 0,
+                            unit: (row[2] || '').trim(),
+                            lot: (row[3] || '').trim(),
+                            systemStock: parseInt(row[4]) || 0,
+                            lastUpdated: parseInt(row[5]) || Date.now(),
+                            notes: (row[6] || '').trim(),
+                            color: (row[7] || '').trim(),
+                            itemType: (row[8] || 'Consumption').trim()
+                        };
+                        newInventory.push(item);
+                    }
+
+                    if (newInventory.length > 0) {
+                        showConfirmModal('Import Data', `Found ${newInventory.length} items. Replace current inventory?`, () => {
+                            inventory = newInventory;
+                            addLogEntry('Imported CSV', { name: `${newInventory.length} items` });
+                            saveState();
+                            renderInventory();
+                            renderHomeInventoryTable();
+                            showModal('Success', 'Inventory loaded from CSV.');
+                        });
+                    }
+                    e.target.value = ''; // Reset input
+                };
+                reader.readAsText(file);
+            });
+
 
             // --- Helpers ---
             function setItemType(type) {
@@ -662,6 +759,9 @@
             }
 
             function renderHomeInventoryTable() {
+                // Save scroll position
+                const scrollPos = homeInventoryTableContainer.scrollTop;
+                
                 homeInventoryTableContainer.innerHTML = inventory.length === 0 ? `<p class="text-center text-gray-500 py-8">No items in inventory to display.</p>` : '';
                 if (inventory.length === 0) return;
                 const groupedItems = new Map();
@@ -700,7 +800,7 @@
                         groupHeaderRow.dataset.timestamp = group.latestUpdate;
                         groupHeaderRow.innerHTML = `<td class="px-4 py-4 text-sm font-medium text-gray-900"><div class="flex items-center">${colorDotsHtml}<svg class="w-4 h-4 mr-2 transform transition-transform ${isExpanded ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg><div>${name} ${itemTypeBadgesHtml}</div></div></td><td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-indigo-600" title="Expand to edit individual lots">${group.totalQuantity} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-blue-600" title="Expand to edit individual lots">${group.totalSystemStock} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">(${group.lots.length} lots)</td><td class="time-col time-cell px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td><td class="notes-col px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td>`;
                         group.lots.sort((a,b) => (a.lot || '').localeCompare(b.lot || '')).forEach(lot => {
-                            const lotColorDot = lot.color ? `<span class="inline-block w-2 h-2 ${colorMap[lot.color] || ''} rounded-full mr-2 flex-shrink-0" title="${color}"></span>` : '';
+                            const lotColorDot = lot.color ? `<span class="inline-block w-2 h-2 ${colorMap[lot.color] || ''} rounded-full mr-2 flex-shrink-0" title="${lot.color}"></span>` : '';
                             const lotTypeBadge = `<span class="text-xs ${lot.itemType === 'Key' ? 'text-blue-500' : 'text-orange-500'} font-medium ml-1">${lot.itemType ? (lot.itemType.startsWith('C') ? '(C)' : '(K)') : ''}</span>`;
                             const lotRow = tableBody.insertRow();
                             lotRow.className = `lot-row border-l-4 border-gray-200 ${isExpanded ? '' : 'hidden'}`;
@@ -721,6 +821,9 @@
                 if (itemToScrollTo) {
                     setTimeout(() => { scrollToItem(itemToScrollTo); itemToScrollTo = null; }, 50); 
                 }
+                
+                // Restore scroll position
+                homeInventoryTableContainer.scrollTop = scrollPos;
             }
 
             function updateHomeTableVisuals() {
@@ -884,6 +987,10 @@
                 });
             });
             
+            manualSyncBtn.addEventListener('click', () => {
+                loadFromCloud();
+            });
+
             document.querySelectorAll('.unit-btn').forEach(button => button.addEventListener('click', (e) => document.getElementById('stockUnit').value = e.target.textContent));
             sortLatestOnTopCheckbox.addEventListener('change', renderHomeInventoryTable);
             showTimeCheckbox.addEventListener('change', updateHomeTableVisuals);
@@ -921,8 +1028,8 @@
             setAllYellowBtn.addEventListener('click', () => { showConfirmModal('Set Yellow', 'Set all items to yellow?', () => { inventory.forEach(item => item.color = 'yellow'); addLogEntry('Updated', { name: 'All Items', color: 'yellow' }, { color: 'any' }); saveState(); renderHomeInventoryTable(); showModal('Success', 'All set to yellow.'); }); });
             setAllGreyBtn.addEventListener('click', () => { showConfirmModal('Set Grey', 'Set all items to grey?', () => { inventory.forEach(item => item.color = 'grey'); addLogEntry('Updated', { name: 'All Items', color: 'grey' }, { color: 'any' }); saveState(); renderHomeInventoryTable(); showModal('Success', 'All set to grey.'); }); });
 
-            // Initial Sync with Firestore
-            startLiveSync();
+            // Initial Load
+            loadFromCloud();
             showPage('homePage');
         });
     </script>
