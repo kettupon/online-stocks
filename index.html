@@ -988,18 +988,13 @@
                     if (colorDotsHtml) colorDotsHtml = `<div class="flex items-center mr-2">${colorDotsHtml}</div>`;
                     const itemTypeBadgesHtml = uniqueItemTypes.map(type => `<span class="text-xs ${type === 'Key' ? 'text-blue-600' : 'text-orange-600'} font-medium ml-1">(${type})</span>`).join('');
                     
-                    // Smart Image Logic: Find the most recently updated item with an image
-                    const lotWithImage = group.lots.sort((a,b) => b.lastUpdated - a.lastUpdated).find(l => l.imageId);
-                    const peekImageId = lotWithImage ? lotWithImage.imageId : '';
-
                     if (group.lots.length > 1) {
                         const isExpanded = !!expandedGroups[name];
                         const groupHeaderRow = tableBody.insertRow();
                         groupHeaderRow.className = 'group-header';
                         groupHeaderRow.dataset.groupName = name;
                         groupHeaderRow.dataset.timestamp = group.latestUpdate;
-                        // Added data-image-id to the first td
-                        groupHeaderRow.innerHTML = `<td class="px-4 py-4 text-sm font-medium text-gray-900 relative select-none" data-image-id="${peekImageId}"><div class="flex items-center">${colorDotsHtml}<svg class="w-4 h-4 mr-2 transform transition-transform ${isExpanded ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg><div>${name} ${itemTypeBadgesHtml}</div></div></td><td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-indigo-600" title="Expand to edit individual lots">${group.totalQuantity} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-blue-600" title="Expand to edit individual lots">${group.totalSystemStock} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">(${group.lots.length} lots)</td><td class="time-col time-cell px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td><td class="notes-col px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td>`;
+                        groupHeaderRow.innerHTML = `<td class="px-4 py-4 text-sm font-medium text-gray-900"><div class="flex items-center">${colorDotsHtml}<svg class="w-4 h-4 mr-2 transform transition-transform ${isExpanded ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg><div>${name} ${itemTypeBadgesHtml}</div></div></td><td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-indigo-600" title="Expand to edit individual lots">${group.totalQuantity} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-blue-600" title="Expand to edit individual lots">${group.totalSystemStock} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">(${group.lots.length} lots)</td><td class="time-col time-cell px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td><td class="notes-col px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td>`;
                         group.lots.sort((a,b) => (a.lot || '').localeCompare(b.lot || '')).forEach(lot => {
                             const lotColorDot = lot.color ? `<span class="inline-block w-2 h-2 ${colorMap[lot.color] || ''} rounded-full mr-2 flex-shrink-0" title="${lot.color}"></span>` : '';
                             const lotTypeBadge = `<span class="text-xs ${lot.itemType === 'Key' ? 'text-blue-500' : 'text-orange-500'} font-medium ml-1">${lot.itemType ? (lot.itemType.startsWith('C') ? '(C)' : '(K)') : ''}</span>`;
@@ -1008,8 +1003,7 @@
                             const lotRow = tableBody.insertRow();
                             lotRow.className = `lot-row border-l-4 border-gray-200 ${isExpanded ? '' : 'hidden'}`;
                             lotRow.dataset.groupFor = name;
-                            // Added data-image-id to the first td
-                            lotRow.innerHTML = `<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 relative select-none" data-image-id="${lot.imageId || ''}"><div class="flex items-center ml-8">${lotColorDot} ${lotTypeBadge}</div></td><td class="quick-edit-lot-cell px-4 py-3 whitespace-nowrap text-sm text-indigo-700" data-id="${lot.id}">${lot.quantity} ${lot.unit || ''}</td><td class="quick-edit-system-cell px-4 py-3 whitespace-nowrap text-sm text-blue-700" data-id="${lot.id}">${lot.systemStock} ${lot.unit || ''}</td><td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${lot.lot}</td><td class="time-col px-4 py-3 whitespace-nowrap text-sm text-gray-500">${new Date(lot.lastUpdated).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour:'2-digit', minute:'2-digit' })}</td><td class="notes-col px-4 py-3 text-sm text-gray-500 whitespace-pre-wrap break-words">${imgThumb} ${lot.notes || ''}</td>`;
+                            lotRow.innerHTML = `<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500"><div class="flex items-center ml-8">${lotColorDot} ${lotTypeBadge}</div></td><td class="quick-edit-lot-cell px-4 py-3 whitespace-nowrap text-sm text-indigo-700" data-id="${lot.id}">${lot.quantity} ${lot.unit || ''}</td><td class="quick-edit-system-cell px-4 py-3 whitespace-nowrap text-sm text-blue-700" data-id="${lot.id}">${lot.systemStock} ${lot.unit || ''}</td><td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${lot.lot}</td><td class="time-col px-4 py-3 whitespace-nowrap text-sm text-gray-500">${new Date(lot.lastUpdated).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour:'2-digit', minute:'2-digit' })}</td><td class="notes-col px-4 py-3 text-sm text-gray-500 whitespace-pre-wrap break-words">${imgThumb} ${lot.notes || ''}</td>`;
                         });
                     } else {
                         const singleLot = group.lots[0];
@@ -1019,8 +1013,7 @@
                         const singleRow = tableBody.insertRow();
                         singleRow.className = 'group-header is-static';
                         singleRow.dataset.timestamp = group.latestUpdate;
-                        // Added data-image-id to the first td
-                        singleRow.innerHTML = `<td class="px-4 py-4 text-sm font-medium text-gray-900 relative select-none" data-image-id="${singleLot.imageId || ''}"><div class="flex items-center">${singleColorDot}<span class="w-4 h-4 mr-2"></span>${name} ${itemTypeBadgesHtml}</div></td><td class="quick-edit-cell px-4 py-4 whitespace-nowrap text-sm font-bold text-indigo-600" data-id="${singleLot.id}">${group.totalQuantity} ${group.primaryUnit || ''}</td><td class="quick-edit-system-cell px-4 py-4 whitespace-nowrap text-sm font-bold text-blue-600" data-id="${singleLot.id}">${group.totalSystemStock} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${singleLot.lot}</td><td class="time-col px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td><td class="notes-col px-4 py-4 text-sm text-gray-500 whitespace-pre-wrap break-words">${imgThumb} ${singleLot.notes || ''}</td>`;
+                        singleRow.innerHTML = `<td class="px-4 py-4 text-sm font-medium text-gray-900"><div class="flex items-center">${singleColorDot}<span class="w-4 h-4 mr-2"></span>${name} ${itemTypeBadgesHtml}</div></td><td class="quick-edit-cell px-4 py-4 whitespace-nowrap text-sm font-bold text-indigo-600" data-id="${singleLot.id}">${group.totalQuantity} ${group.primaryUnit || ''}</td><td class="quick-edit-system-cell px-4 py-4 whitespace-nowrap text-sm font-bold text-blue-600" data-id="${singleLot.id}">${group.totalSystemStock} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${singleLot.lot}</td><td class="time-col px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td><td class="notes-col px-4 py-4 text-sm text-gray-500 whitespace-pre-wrap break-words">${imgThumb} ${singleLot.notes || ''}</td>`;
                     }
                 });
                 homeInventoryTableContainer.appendChild(table);
@@ -1135,7 +1128,7 @@
                 }
             });
 
-            // Image Thumbnail Click Event (Inventory List - Notes Column)
+            // Image Thumbnail Click Event (Inventory List)
             homeInventoryTableContainer.addEventListener('click', async (e) => {
                 const thumbContainer = e.target.closest('.image-thumbnail-container');
                 if (thumbContainer) {
@@ -1151,30 +1144,6 @@
                         } else {
                             showModal('Error', 'Image not found.', 'error');
                         }
-                    }
-                }
-            });
-
-            // NEW: Double-Click / Double-Tap on Name Area to Peek Image
-            homeInventoryTableContainer.addEventListener('dblclick', async (e) => {
-                const nameCell = e.target.closest('td');
-                // Check if it's the first cell (Name area, index 0)
-                if (nameCell && nameCell.cellIndex === 0) {
-                    const imageId = nameCell.dataset.imageId;
-                    if (imageId) {
-                        e.stopPropagation(); 
-                        showLoading(true);
-                        const fullImage = await fetchFullImage(imageId);
-                        showLoading(false);
-                        if (fullImage) {
-                            fullSizeImage.src = fullImage;
-                            imageViewerModal.classList.remove('opacity-0', 'pointer-events-none');
-                        } else {
-                            showModal('No Image', 'This item has no image preview.', 'error');
-                        }
-                    } else {
-                         // Optional: Feedback that there is no image
-                         // showModal('No Image', 'No image uploaded for this item.', 'info');
                     }
                 }
             });
@@ -1262,7 +1231,8 @@
                     if (itemToEdit.thumbnail) {
                         previewImg.src = itemToEdit.thumbnail;
                         previewImg.classList.remove('hidden');
-                        previewImg.dataset.imageId = itemToEdit.imageId; // Ensure ID is set for viewing
+                        // Store the ID so clicking the thumb fetches the full image
+                        previewImg.dataset.imageId = itemToEdit.imageId; 
                         noImageText.classList.add('hidden');
                         removeImageBtn.classList.remove('hidden');
                     }
