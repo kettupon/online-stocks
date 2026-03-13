@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,70 +8,397 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
         /* Custom styles for the app */
-        body { font-family: 'Noto Sans Thai', sans-serif; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-        .counter-btn { transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out; user-select: none; }
-        .counter-btn:active { transform: scale(0.95); }
-        .shadow-custom { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
-        .page { display: none; }
-        .page.active { display: block; }
-        .nav-link.active-mobile span { font-weight: 700; }
-        .nav-link.active-mobile svg { color: #4f46e5; }
-        .nav-link.active-desktop { background-color: #eef2ff; color: #4338ca; font-weight: 600; }
-        #counterInput, #systemStockInput { -moz-appearance: textfield; }
-        #counterInput::-webkit-outer-spin-button, #counterInput::-webkit-inner-spin-button,
-        #systemStockInput::-webkit-outer-spin-button, #systemStockInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .modal-backdrop { transition: opacity 0.3s ease; }
-        .modal-content { transition: transform 0.3s ease, opacity 0.3s ease; transform: translateY(-20px) scale(0.95); }
-        #confirmModal .modal-content { padding: 24px; }
-        @keyframes fade-turquoise-to-green { from { background-color: #40E0D0; } to { background-color: #d1fae5; } }
-        @keyframes fade-green-to-white { from { background-color: #d1fae5; } to { background-color: #f9fafb; } }
-        .animate-new, .animate-new-single { animation: fade-turquoise-to-green 15s linear forwards; }
-        .animate-recent, .animate-recent-single { animation: fade-green-to-white 285s linear forwards; }
-        @keyframes fade-green-to-white-single { from { background-color: #d1fae5; } to { background-color: #ffffff; } }
-        .animate-recent-single { animation-name: fade-green-to-white-single; }
-        .bg-yellow-pastel { background-color: #fef9c3; }
-        .bg-orange-pastel { background-color: #ffedd5; }
-        .bg-red-pastel { background-color: #fee2e2; }
-        .bg-purple-pastel { background-color: #f3e8ff; }
-        .group-header { cursor: pointer; }
-        .group-header.is-static { cursor: default; }
-        .group-header:not(.is-static):hover { background-color: #f3f4f6; }
-        .lot-row { background-color: #ffffff; }
-        .time-col, .notes-col { display: none; }
-        .quick-edit-cell, .quick-edit-lot-cell, .quick-edit-system-cell { cursor: pointer; position: relative; }
-        .quick-edit-cell:hover, .quick-edit-lot-cell:hover, .quick-edit-system-cell:hover { background-color: #eef2ff; }
-        .color-btn { transition: transform 0.2s, box-shadow 0.2s; }
-        .color-btn.selected { transform: scale(1.2); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.5); }
-        
+        body {
+            font-family: 'Noto Sans Thai', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .counter-btn {
+            transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+            user-select: none;
+        }
+
+        .counter-btn:active {
+            transform: scale(0.95);
+        }
+
+        .shadow-custom {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .nav-link.active-mobile span {
+            font-weight: 700;
+        }
+
+        .nav-link.active-mobile svg {
+            color: #4f46e5;
+        }
+
+        .nav-link.active-desktop {
+            background-color: #eef2ff;
+            color: #4338ca;
+            font-weight: 600;
+        }
+
+        #counterInput,
+        #systemStockInput {
+            -moz-appearance: textfield;
+        }
+
+        #counterInput::-webkit-outer-spin-button,
+        #counterInput::-webkit-inner-spin-button,
+        #systemStockInput::-webkit-outer-spin-button,
+        #systemStockInput::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .modal-backdrop {
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-content {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            transform: translateY(-20px) scale(0.95);
+        }
+
+        #confirmModal .modal-content {
+            padding: 24px;
+        }
+
+        @keyframes fade-turquoise-to-green {
+            from {
+                background-color: #40E0D0;
+            }
+
+            to {
+                background-color: #d1fae5;
+            }
+        }
+
+        @keyframes fade-green-to-white {
+            from {
+                background-color: #d1fae5;
+            }
+
+            to {
+                background-color: #f9fafb;
+            }
+        }
+
+        .animate-new,
+        .animate-new-single {
+            animation: fade-turquoise-to-green 15s linear forwards;
+        }
+
+        .animate-recent,
+        .animate-recent-single {
+            animation: fade-green-to-white 285s linear forwards;
+        }
+
+        @keyframes fade-green-to-white-single {
+            from {
+                background-color: #d1fae5;
+            }
+
+            to {
+                background-color: #ffffff;
+            }
+        }
+
+        .animate-recent-single {
+            animation-name: fade-green-to-white-single;
+        }
+
+        .bg-yellow-pastel {
+            background-color: #fef9c3;
+        }
+
+        .bg-orange-pastel {
+            background-color: #ffedd5;
+        }
+
+        .bg-red-pastel {
+            background-color: #fee2e2;
+        }
+
+        .bg-purple-pastel {
+            background-color: #f3e8ff;
+        }
+
+        .group-header {
+            cursor: pointer;
+        }
+
+        .group-header.is-static {
+            cursor: default;
+        }
+
+        .group-header:not(.is-static):hover {
+            background-color: #f3f4f6;
+        }
+
+        .lot-row {
+            background-color: #ffffff;
+        }
+
+        .time-col,
+        .notes-col {
+            display: none;
+        }
+
+        .quick-edit-cell,
+        .quick-edit-lot-cell,
+        .quick-edit-system-cell {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .quick-edit-cell:hover,
+        .quick-edit-lot-cell:hover,
+        .quick-edit-system-cell:hover {
+            background-color: #eef2ff;
+        }
+
+        .color-btn {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .color-btn.selected {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.5);
+        }
+
         /* Filter Button Styles */
-        .filter-btn { transition: all 0.2s; opacity: 0.5; transform: scale(0.9); }
-        .filter-btn:hover { opacity: 0.8; }
-        .filter-btn.active-filter { opacity: 1; transform: scale(1.1); box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.5); border: 2px solid white; }
-        
-        .item-type-btn { transition: background-color 0.2s, color 0.2s, box-shadow 0.2s; }
-        .item-type-btn.active-consumption { background-color: #f97316; color: white; z-index: 10; }
-        .item-type-btn.active-key { background-color: #3b82f6; color: white; z-index: 10; }
-        .item-type-btn:not(.active-consumption):not(.active-key) { background-color: #e5e7eb; color: #4b5563; }
-        
+        .filter-btn {
+            transition: all 0.2s;
+            opacity: 0.5;
+            transform: scale(0.9);
+        }
+
+        .filter-btn:hover {
+            opacity: 0.8;
+        }
+
+        .filter-btn.active-filter {
+            opacity: 1;
+            transform: scale(1.1);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.5);
+            border: 2px solid white;
+        }
+
+        .item-type-btn {
+            transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+        }
+
+        .item-type-btn.active-consumption {
+            background-color: #f97316;
+            color: white;
+            z-index: 10;
+        }
+
+        .item-type-btn.active-key {
+            background-color: #3b82f6;
+            color: white;
+            z-index: 10;
+        }
+
+        .item-type-btn:not(.active-consumption):not(.active-key) {
+            background-color: #e5e7eb;
+            color: #4b5563;
+        }
+
         /* Image Styles */
-        .image-thumbnail-container { width: 40px; height: 40px; overflow: hidden; border-radius: 4px; cursor: pointer; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; background: #f3f4f6; }
-        .image-thumbnail-container img { width: 100%; height: 100%; object-fit: cover; }
-        
+        .image-thumbnail-container {
+            width: 40px;
+            height: 40px;
+            overflow: hidden;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+        }
+
+        .image-thumbnail-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Image Mode Styles */
+        .image-mode-container {}
+
+        .image-mode-search {
+            margin-bottom: 16px;
+        }
+
+        .image-mode-search input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .image-mode-search input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .image-mode-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .image-mode-card {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 10px 14px;
+            gap: 12px;
+            transition: box-shadow 0.2s, transform 0.15s;
+            cursor: pointer;
+            overflow: hidden;
+            min-height: 72px;
+        }
+
+        .image-mode-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .image-mode-card:active {
+            transform: scale(0.98);
+        }
+
+        .image-mode-card-name {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1f2937;
+            word-break: break-word;
+            line-height: 1.3;
+        }
+
+        .image-mode-card-name .item-type-badge {
+            display: block;
+            font-size: 10px;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .image-mode-card-img {
+            width: 52px;
+            height: 52px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e5e7eb;
+        }
+
+        .image-mode-card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-mode-card-img .placeholder-icon {
+            color: #9ca3af;
+        }
+
+        .image-mode-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #eef2ff;
+            color: #4338ca;
+            margin-left: 8px;
+        }
+
+        .image-mode-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4338ca;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .image-mode-toast.show {
+            opacity: 1;
+        }
+
         /* Loading Overlay */
-        #loadingOverlay { transition: opacity 0.3s ease; }
-        .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid #4f46e5; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #loadingOverlay {
+            transition: opacity 0.3s ease;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #4f46e5;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
+
 <body class="bg-gray-100">
-    <div id="loadingOverlay" class="fixed inset-0 bg-white bg-opacity-80 z-50 flex flex-col items-center justify-center hidden opacity-0 pointer-events-none">
+    <div id="loadingOverlay"
+        class="fixed inset-0 bg-white bg-opacity-80 z-50 flex flex-col items-center justify-center hidden opacity-0 pointer-events-none">
         <div class="spinner mb-4"></div>
         <p class="text-indigo-600 font-semibold" id="loadingText">Connecting to Firestore...</p>
     </div>
@@ -79,27 +407,51 @@
         <nav class="hidden md:flex md:flex-col md:w-64 md:h-screen md:bg-white md:border-r md:border-gray-200 md:p-4">
             <div class="text-indigo-600 mb-8 px-2">
                 <h2 class="text-2xl font-bold flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 001.414 0l2.414-2.414a1 1 0 01.707-.293H17" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 001.414 0l2.414-2.414a1 1 0 01.707-.293H17" />
                     </svg>
                     นับ Stock RT
                 </h2>
             </div>
             <div class="space-y-2">
-                <a href="#homePage" data-page="homePage" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                <a href="#homePage" data-page="homePage"
+                    class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
                     <span>Home</span>
                 </a>
-                <a href="#inventoryPage" data-page="inventoryPage" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+                <a href="#inventoryPage" data-page="inventoryPage"
+                    class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    </svg>
                     <span>Inventory</span>
                 </a>
-                <a href="#addPage" data-page="addPage" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100" title="Double tap to reset form">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <a href="#addPage" data-page="addPage"
+                    class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100"
+                    title="Double tap to reset form">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     <span>Add Item</span>
                 </a>
-                <a href="#dashboardPage" data-page="dashboardPage" class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100" title="Double tap to unlock Admin">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                <a href="#dashboardPage" data-page="dashboardPage"
+                    class="nav-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100"
+                    title="Double tap to unlock Admin">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
                     <span>Dashboard</span>
                 </a>
             </div>
@@ -116,39 +468,65 @@
                         <h1 class="text-3xl font-bold text-gray-800">Add Item</h1>
                     </div>
                     <div class="md:grid md:grid-cols-3 md:gap-4 lg:gap-8">
-                        <div class="bg-white rounded-2xl shadow-custom p-6 md:p-8 text-center flex flex-col justify-between mb-8 md:mb-0">
+                        <div
+                            class="bg-white rounded-2xl shadow-custom p-6 md:p-8 text-center flex flex-col justify-between mb-8 md:mb-0">
                             <div>
                                 <h2 class="text-2xl font-bold text-gray-800 mb-2">Quantity (Count)</h2>
-                                <input type="number" id="counterInput" value="0" class="text-center text-6xl lg:text-8xl font-extrabold text-indigo-600 bg-transparent w-full border-none focus:ring-0 p-0">
+                                <input type="number" id="counterInput" value="0"
+                                    class="text-center text-6xl lg:text-8xl font-extrabold text-indigo-600 bg-transparent w-full border-none focus:ring-0 p-0">
                             </div>
                             <div class="mt-6">
                                 <div class="flex items-center justify-center space-x-4">
-                                    <button id="decrementBtn" class="counter-btn bg-gray-500 text-white rounded-full w-14 h-14 md:w-16 md:h-16 flex items-center justify-center shadow-md hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 md:h-10 md:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
+                                    <button id="decrementBtn"
+                                        class="counter-btn bg-gray-500 text-white rounded-full w-14 h-14 md:w-16 md:h-16 flex items-center justify-center shadow-md hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 md:h-10 md:w-10"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M20 12H4" />
+                                        </svg>
                                     </button>
-                                    <button id="incrementBtn" class="counter-btn bg-indigo-600 text-white rounded-full w-24 h-24 md:w-32 md:h-32 flex items-center justify-center shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 md:h-16 md:w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                    <button id="incrementBtn"
+                                        class="counter-btn bg-indigo-600 text-white rounded-full w-24 h-24 md:w-32 md:h-32 flex items-center justify-center shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 md:h-16 md:w-16"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 4v16m8-8H4" />
+                                        </svg>
                                     </button>
                                 </div>
-                                <button id="resetBtn" class="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg font-semibold shadow hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">Reset</button>
+                                <button id="resetBtn"
+                                    class="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg font-semibold shadow hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">Reset</button>
                             </div>
                         </div>
 
-                        <div class="bg-white rounded-2xl shadow-custom p-6 md:p-8 text-center flex flex-col justify-between mb-8 md:mb-0">
+                        <div
+                            class="bg-white rounded-2xl shadow-custom p-6 md:p-8 text-center flex flex-col justify-between mb-8 md:mb-0">
                             <div>
                                 <h2 class="text-2xl font-bold text-gray-800 mb-2">System Stock</h2>
-                                <input type="number" id="systemStockInput" value="0" class="text-center text-6xl lg:text-8xl font-extrabold text-blue-600 bg-transparent w-full border-none focus:ring-0 p-0">
+                                <input type="number" id="systemStockInput" value="0"
+                                    class="text-center text-6xl lg:text-8xl font-extrabold text-blue-600 bg-transparent w-full border-none focus:ring-0 p-0">
                             </div>
                             <div class="mt-6">
                                 <div class="flex items-center justify-center space-x-4">
-                                    <button id="systemDecrementBtn" class="counter-btn bg-gray-500 text-white rounded-full w-14 h-14 md:w-16 md:h-16 flex items-center justify-center shadow-md hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 md:h-10 md:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
+                                    <button id="systemDecrementBtn"
+                                        class="counter-btn bg-gray-500 text-white rounded-full w-14 h-14 md:w-16 md:h-16 flex items-center justify-center shadow-md hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 md:h-10 md:w-10"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M20 12H4" />
+                                        </svg>
                                     </button>
-                                    <button id="systemIncrementBtn" class="counter-btn bg-blue-600 text-white rounded-full w-24 h-24 md:w-32 md:h-32 flex items-center justify-center shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 md:h-16 md:w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                    <button id="systemIncrementBtn"
+                                        class="counter-btn bg-blue-600 text-white rounded-full w-24 h-24 md:w-32 md:h-32 flex items-center justify-center shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 md:h-16 md:w-16"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 4v16m8-8H4" />
+                                        </svg>
                                     </button>
                                 </div>
-                                <button id="systemResetBtn" class="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg font-semibold shadow hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">Reset</button>
+                                <button id="systemResetBtn"
+                                    class="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg font-semibold shadow hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">Reset</button>
                             </div>
                         </div>
 
@@ -156,73 +534,116 @@
                             <div class="flex justify-between items-center mb-4">
                                 <h2 class="text-2xl font-bold text-gray-800">Stock Details</h2>
                                 <div id="colorSelector" class="flex space-x-2">
-                                    <button type="button" data-color="green" class="color-btn w-6 h-6 rounded-full bg-green-500 focus:outline-none" title="Green"></button>
-                                    <button type="button" data-color="yellow" class="color-btn w-6 h-6 rounded-full bg-yellow-400 focus:outline-none" title="Yellow"></button>
-                                    <button type="button" data-color="orange" class="color-btn w-6 h-6 rounded-full bg-orange-400 focus:outline-none" title="Orange"></button>
-                                    <button type="button" data-color="red" class="color-btn w-6 h-6 rounded-full bg-red-500 focus:outline-none" title="Red"></button>
-                                    <button type="button" data-color="purple" class="color-btn w-6 h-6 rounded-full bg-purple-500 focus:outline-none" title="Purple"></button>
-                                    <button type="button" data-color="grey" class="color-btn w-6 h-6 rounded-full bg-gray-400 focus:outline-none" title="Grey"></button>
+                                    <button type="button" data-color="green"
+                                        class="color-btn w-6 h-6 rounded-full bg-green-500 focus:outline-none"
+                                        title="Green"></button>
+                                    <button type="button" data-color="yellow"
+                                        class="color-btn w-6 h-6 rounded-full bg-yellow-400 focus:outline-none"
+                                        title="Yellow"></button>
+                                    <button type="button" data-color="orange"
+                                        class="color-btn w-6 h-6 rounded-full bg-orange-400 focus:outline-none"
+                                        title="Orange"></button>
+                                    <button type="button" data-color="red"
+                                        class="color-btn w-6 h-6 rounded-full bg-red-500 focus:outline-none"
+                                        title="Red"></button>
+                                    <button type="button" data-color="purple"
+                                        class="color-btn w-6 h-6 rounded-full bg-purple-500 focus:outline-none"
+                                        title="Purple"></button>
+                                    <button type="button" data-color="grey"
+                                        class="color-btn w-6 h-6 rounded-full bg-gray-400 focus:outline-none"
+                                        title="Grey"></button>
                                 </div>
                             </div>
                             <form id="stockForm" class="space-y-4">
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Item Type</label>
-                                    <div class="flex rounded-lg shadow-sm overflow-hidden border border-gray-300" id="itemTypeSelector">
-                                        <button type="button" data-type="Consumption" class="flex-1 py-2 font-semibold text-center transition item-type-btn rounded-l-lg active-consumption">Consumption</button>
-                                        <button type="button" data-type="Key" class="flex-1 py-2 font-semibold text-center transition item-type-btn rounded-r-lg">Key</button>
+                                    <div class="flex rounded-lg shadow-sm overflow-hidden border border-gray-300"
+                                        id="itemTypeSelector">
+                                        <button type="button" data-type="Consumption"
+                                            class="flex-1 py-2 font-semibold text-center transition item-type-btn rounded-l-lg active-consumption">Consumption</button>
+                                        <button type="button" data-type="Key"
+                                            class="flex-1 py-2 font-semibold text-center transition item-type-btn rounded-r-lg">Key</button>
                                     </div>
                                     <input type="hidden" id="stockItemType" value="Consumption">
                                 </div>
                                 <div>
                                     <label for="stockName" class="block text-sm font-medium text-gray-700">Name</label>
-                                    <input type="text" id="stockName" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., Product A">
+                                    <input type="text" id="stockName" required
+                                        class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="e.g., Product A">
                                 </div>
                                 <div>
                                     <label for="stockUnit" class="block text-sm font-medium text-gray-700">Unit</label>
                                     <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-2 mb-3" id="unitButtons">
-                                        <button type="button" class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">ชิ้น</button>
-                                        <button type="button" class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">กล่อง</button>
-                                        <button type="button" class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">คู่</button>
-                                        <button type="button" class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">แผ่น</button>
-                                        <button type="button" class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">ขวด</button>
+                                        <button type="button"
+                                            class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">ชิ้น</button>
+                                        <button type="button"
+                                            class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">กล่อง</button>
+                                        <button type="button"
+                                            class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">คู่</button>
+                                        <button type="button"
+                                            class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">แผ่น</button>
+                                        <button type="button"
+                                            class="unit-btn px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">ขวด</button>
                                     </div>
-                                    <input type="text" id="stockUnit" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., pcs, kg, box">
+                                    <input type="text" id="stockUnit"
+                                        class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="e.g., pcs, kg, box">
                                 </div>
                                 <div>
                                     <label for="stockLot" class="block text-sm font-medium text-gray-700">Lot</label>
-                                    <input type="text" id="stockLot" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., LOT202401">
+                                    <input type="text" id="stockLot"
+                                        class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="e.g., LOT202401">
                                 </div>
                                 <div>
-                                    <label for="stockNotes" class="block text-sm font-medium text-gray-700">Notes & Image</label>
-                                    <textarea id="stockNotes" rows="2" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Optional notes..."></textarea>
-                                    
+                                    <label for="stockNotes" class="block text-sm font-medium text-gray-700">Notes &
+                                        Image</label>
+                                    <textarea id="stockNotes" rows="2"
+                                        class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="Optional notes..."></textarea>
+
                                     <div class="mt-3 flex items-start space-x-4">
-                                        <input type="file" id="imageInput" accept="image/*" class="hidden" capture="environment">
-                                        
+                                        <input type="file" id="imageInput" accept="image/*" class="hidden"
+                                            capture="environment">
+
                                         <!-- Image Display Area -->
-                                        <div id="formImageContainer" class="relative w-24 h-24 bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-center overflow-hidden cursor-pointer shadow-sm hover:bg-gray-200 transition-colors" title="Click to View Full Image">
-                                            <span id="noImageText" class="text-xs text-gray-400 text-center px-2">No Image</span>
+                                        <div id="formImageContainer"
+                                            class="relative w-24 h-24 bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-center overflow-hidden cursor-pointer shadow-sm hover:bg-gray-200 transition-colors"
+                                            title="Click to View Full Image">
+                                            <span id="noImageText" class="text-xs text-gray-400 text-center px-2">No
+                                                Image</span>
                                             <img id="previewImg" class="hidden w-full h-full object-cover">
                                             <!-- Remove Button -->
-                                            <button type="button" id="removeImageBtn" class="hidden absolute top-0 right-0 bg-red-500 text-white p-1 rounded-bl-md hover:bg-red-600 focus:outline-none z-10" title="Remove">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                            <button type="button" id="removeImageBtn"
+                                                class="hidden absolute top-0 right-0 bg-red-500 text-white p-1 rounded-bl-md hover:bg-red-600 focus:outline-none z-10"
+                                                title="Remove">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3"
+                                                    viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd"
+                                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                        clip-rule="evenodd" />
                                                 </svg>
                                             </button>
                                         </div>
 
                                         <!-- Camera/Upload Button -->
-                                        <button type="button" id="triggerUploadBtn" class="flex flex-col items-center justify-center w-24 h-24 bg-white border-2 border-dashed border-gray-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-colors focus:outline-none">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <button type="button" id="triggerUploadBtn"
+                                            class="flex flex-col items-center justify-center w-24 h-24 bg-white border-2 border-dashed border-gray-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-colors focus:outline-none">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400 mb-1"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
                                             <span class="text-xs text-gray-500 font-medium">Add Photo</span>
                                         </button>
                                     </div>
                                 </div>
                                 <div>
-                                    <button type="submit" id="saveBtn" class="w-full mt-4 flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <button type="submit" id="saveBtn"
+                                        class="w-full mt-4 flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                         Save to Cloud Inventory
                                     </button>
                                 </div>
@@ -237,15 +658,34 @@
                         <div class="w-full md:max-w-md">
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
+                                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                            clip-rule="evenodd" />
+                                    </svg>
                                 </div>
-                                <input type="text" id="searchInput" class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Search items...">
-                                <button id="clearSearchBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center hidden"><svg class="h-5 w-5 text-gray-400 hover:text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                                <input type="text" id="searchInput"
+                                    class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    placeholder="Search items...">
+                                <button id="clearSearchBtn"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center hidden"><svg
+                                        class="h-5 w-5 text-gray-400 hover:text-gray-600"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg></button>
                             </div>
                             <div id="searchOptions" class="flex items-center space-x-4 mt-2">
                                 <span class="text-sm font-medium text-gray-700">Search by:</span>
-                                <div class="flex items-center"><input id="searchContains" name="searchType" type="radio" checked class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"><label for="searchContains" class="ml-2 block text-sm text-gray-900">Contains</label></div>
-                                <div class="flex items-center"><input id="searchPrefix" name="searchType" type="radio" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"><label for="searchPrefix" class="ml-2 block text-sm text-gray-900">Prefix</label></div>
+                                <div class="flex items-center"><input id="searchContains" name="searchType" type="radio"
+                                        checked
+                                        class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"><label
+                                        for="searchContains" class="ml-2 block text-sm text-gray-900">Contains</label>
+                                </div>
+                                <div class="flex items-center"><input id="searchPrefix" name="searchType" type="radio"
+                                        class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"><label
+                                        for="searchPrefix" class="ml-2 block text-sm text-gray-900">Prefix</label></div>
                             </div>
                         </div>
                     </div>
@@ -253,29 +693,70 @@
                 </div>
 
                 <div id="homePage" class="page bg-white rounded-2xl shadow-custom p-6 md:p-8">
-                    <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
-                        <h1 class="text-3xl font-bold text-gray-800">Inventory Overview</h1>
-                        <div class="flex items-center space-x-4 flex-wrap">
-                            <div class="flex items-center"><input id="showTime" type="checkbox" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"><label for="showTime" class="ml-2 block text-sm text-gray-900">Show time</label></div>
-                            <div class="flex items-center"><input id="showNotes" type="checkbox" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"><label for="showNotes" class="ml-2 block text-sm text-gray-900">Show notes & images</label></div>
-                            <div class="flex items-center"><input id="sortLatestOnTop" type="checkbox" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"><label for="sortLatestOnTop" class="ml-2 block text-sm text-gray-900">Show latest on top</label></div>
+                    <!-- Normal Table View Header -->
+                    <div id="homeTableHeader">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
+                            <h1 class="text-3xl font-bold text-gray-800">Inventory Overview</h1>
+                            <div class="flex items-center space-x-4 flex-wrap">
+                                <div class="flex items-center"><input id="showTime" type="checkbox"
+                                        class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"><label
+                                        for="showTime" class="ml-2 block text-sm text-gray-900">Show time</label></div>
+                                <div class="flex items-center"><input id="showNotes" type="checkbox"
+                                        class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"><label
+                                        for="showNotes" class="ml-2 block text-sm text-gray-900">Show notes &
+                                        images</label></div>
+                                <div class="flex items-center"><input id="sortLatestOnTop" type="checkbox"
+                                        class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"><label
+                                        for="sortLatestOnTop" class="ml-2 block text-sm text-gray-900">Show latest on
+                                        top</label></div>
+                            </div>
+                        </div>
+
+                        <!-- Color Filter Section -->
+                        <div id="homeColorFilter"
+                            class="flex flex-wrap items-center gap-2 mb-4 p-2 bg-gray-50 rounded-lg">
+                            <span class="text-sm text-gray-600 font-medium mr-1">Filter Color:</span>
+                            <button
+                                class="filter-btn active-filter px-3 py-1 rounded-full bg-white border border-gray-300 text-xs font-bold text-gray-700 shadow-sm"
+                                data-filter="all">All</button>
+                            <button class="filter-btn w-6 h-6 rounded-full bg-green-500 shadow-sm" data-filter="green"
+                                title="Green"></button>
+                            <button class="filter-btn w-6 h-6 rounded-full bg-yellow-400 shadow-sm" data-filter="yellow"
+                                title="Yellow"></button>
+                            <button class="filter-btn w-6 h-6 rounded-full bg-orange-400 shadow-sm" data-filter="orange"
+                                title="Orange"></button>
+                            <button class="filter-btn w-6 h-6 rounded-full bg-red-500 shadow-sm" data-filter="red"
+                                title="Red"></button>
+                            <button class="filter-btn w-6 h-6 rounded-full bg-purple-500 shadow-sm" data-filter="purple"
+                                title="Purple"></button>
+                            <button class="filter-btn w-6 h-6 rounded-full bg-gray-400 shadow-sm" data-filter="grey"
+                                title="Grey"></button>
+                            <button
+                                class="filter-btn w-6 h-6 rounded-full bg-white border-2 border-gray-300 shadow-sm flex items-center justify-center text-xs text-gray-400"
+                                data-filter="none" title="No Color">X</button>
                         </div>
                     </div>
-                    
-                    <!-- Color Filter Section -->
-                    <div id="homeColorFilter" class="flex flex-wrap items-center gap-2 mb-4 p-2 bg-gray-50 rounded-lg">
-                        <span class="text-sm text-gray-600 font-medium mr-1">Filter Color:</span>
-                        <button class="filter-btn active-filter px-3 py-1 rounded-full bg-white border border-gray-300 text-xs font-bold text-gray-700 shadow-sm" data-filter="all">All</button>
-                        <button class="filter-btn w-6 h-6 rounded-full bg-green-500 shadow-sm" data-filter="green" title="Green"></button>
-                        <button class="filter-btn w-6 h-6 rounded-full bg-yellow-400 shadow-sm" data-filter="yellow" title="Yellow"></button>
-                        <button class="filter-btn w-6 h-6 rounded-full bg-orange-400 shadow-sm" data-filter="orange" title="Orange"></button>
-                        <button class="filter-btn w-6 h-6 rounded-full bg-red-500 shadow-sm" data-filter="red" title="Red"></button>
-                        <button class="filter-btn w-6 h-6 rounded-full bg-purple-500 shadow-sm" data-filter="purple" title="Purple"></button>
-                        <button class="filter-btn w-6 h-6 rounded-full bg-gray-400 shadow-sm" data-filter="grey" title="Grey"></button>
-                        <button class="filter-btn w-6 h-6 rounded-full bg-white border-2 border-gray-300 shadow-sm flex items-center justify-center text-xs text-gray-400" data-filter="none" title="No Color">X</button>
+
+                    <!-- Image Mode Header (hidden by default) -->
+                    <div id="imageModeHeader" class="hidden">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
+                            <h1 class="text-3xl font-bold text-gray-800">📷 Image Mode</h1>
+                        </div>
+                        <div class="image-mode-search relative mb-4">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <input type="text" id="imageModeSearchInput" placeholder="Search items..." />
+                        </div>
                     </div>
 
                     <div id="homeInventoryTableContainer" class="overflow-x-auto"></div>
+                    <div id="imageModeContainer" class="image-mode-container hidden"></div>
                 </div>
 
                 <div id="dashboardPage" class="page bg-white rounded-2xl shadow-custom p-6 md:p-8">
@@ -285,35 +766,63 @@
                     <div id="adminControls" class="hidden">
                         <div class="text-indigo-600 mb-8 px-2 text-center md:text-left">
                             <h2 class="text-2xl font-bold flex items-center justify-center md:justify-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 001.414 0l2.414-2.414a1 1 0 01.707-.293H17" /></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 001.414 0l2.414-2.414a1 1 0 01.707-.293H17" />
+                                </svg>
                                 นับ Stock RT NU
                             </h2>
                         </div>
-                        <p class="text-center md:text-left text-gray-500 mt-2 mb-6">Manage data and sync with Firebase Cloud.</p>
+                        <p class="text-center md:text-left text-gray-500 mt-2 mb-6">Manage data and sync with Firebase
+                            Cloud.</p>
                         <div class="space-y-4 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-4">
-                            <button id="exportCsvBtn" class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">Export CSV</button>
-                            <label for="importCsvInput" class="cursor-pointer w-full md:w-auto flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Load from CSV</label>
+                            <button id="exportCsvBtn"
+                                class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">Export
+                                CSV</button>
+                            <label for="importCsvInput"
+                                class="cursor-pointer w-full md:w-auto flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Load
+                                from CSV</label>
                             <input type="file" id="importCsvInput" class="hidden" accept=".csv">
                             <!-- NEW BUTTON: Reset Values -->
-                            <button id="resetValuesBtn" class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">Reset Values (Keep Items)</button>
-                            <button id="clearDataBtn" class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700">Clear All Data</button>
+                            <button id="resetValuesBtn"
+                                class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">Reset
+                                Values (Keep Items)</button>
+                            <button id="clearDataBtn"
+                                class="w-full md:w-auto flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700">Clear
+                                All Data</button>
                         </div>
 
                         <div class="mt-8 pt-8 border-t border-gray-200">
                             <h2 class="text-2xl font-bold text-gray-800 mb-4">Bulk JSON Import</h2>
-                            <p class="text-sm text-gray-500 mb-2">Paste your JSON array here to upload multiple items at once.</p>
-                            <textarea id="jsonImportArea" rows="5" class="w-full p-3 border border-gray-300 rounded-lg text-xs font-mono bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500" placeholder='[{ "name": "Item A", ... }]'></textarea>
-                            <button id="processJsonBtn" class="mt-3 w-full md:w-auto px-6 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700">Upload JSON to Cloud</button>
+                            <p class="text-sm text-gray-500 mb-2">Paste your JSON array here to upload multiple items at
+                                once.</p>
+                            <textarea id="jsonImportArea" rows="5"
+                                class="w-full p-3 border border-gray-300 rounded-lg text-xs font-mono bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder='[{ "name": "Item A", ... }]'></textarea>
+                            <button id="processJsonBtn"
+                                class="mt-3 w-full md:w-auto px-6 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700">Upload
+                                JSON to Cloud</button>
                         </div>
 
                         <div class="mt-8 pt-8 border-t border-gray-200">
                             <h2 class="text-2xl font-bold text-gray-800 mb-4">Bulk Color Actions</h2>
                             <div class="space-y-4 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-4">
-                                <button id="resetColorsBtn" class="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Reset Colors</button>
-                                <button id="setAllPurpleBtn" class="w-full md:w-auto px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700">All Purple</button>
-                                <button id="setBlankToYellowBtn" class="w-full md:w-auto px-4 py-2 bg-yellow-400 text-gray-800 rounded-md text-sm font-medium hover:bg-yellow-500">Blank to Yellow</button>
-                                <button id="setAllYellowBtn" class="w-full md:w-auto px-4 py-2 bg-yellow-400 text-gray-800 rounded-md text-sm font-medium hover:bg-yellow-500">All Yellow</button>
-                                <button id="setAllGreyBtn" class="w-full md:w-auto px-4 py-2 bg-gray-500 text-white rounded-md text-sm font-medium hover:bg-gray-600">All Grey</button>
+                                <button id="resetColorsBtn"
+                                    class="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Reset
+                                    Colors</button>
+                                <button id="setAllPurpleBtn"
+                                    class="w-full md:w-auto px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700">All
+                                    Purple</button>
+                                <button id="setBlankToYellowBtn"
+                                    class="w-full md:w-auto px-4 py-2 bg-yellow-400 text-gray-800 rounded-md text-sm font-medium hover:bg-yellow-500">Blank
+                                    to Yellow</button>
+                                <button id="setAllYellowBtn"
+                                    class="w-full md:w-auto px-4 py-2 bg-yellow-400 text-gray-800 rounded-md text-sm font-medium hover:bg-yellow-500">All
+                                    Yellow</button>
+                                <button id="setAllGreyBtn"
+                                    class="w-full md:w-auto px-4 py-2 bg-gray-500 text-white rounded-md text-sm font-medium hover:bg-gray-600">All
+                                    Grey</button>
                             </div>
                         </div>
                     </div>
@@ -322,7 +831,9 @@
                     <div class="mt-8 pt-8 border-t border-gray-200">
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-2xl font-bold text-gray-800">Activity Log (Latest 50)</h2>
-                            <button id="exportLogCsvBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">Export Log</button>
+                            <button id="exportLogCsvBtn"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">Export
+                                Log</button>
                         </div>
                         <div id="activityLogList" class="space-y-3"></div>
                     </div>
@@ -331,33 +842,78 @@
         </main>
     </div>
 
-    <button id="fullScreenToggleBtn" class="fixed right-4 bottom-20 md:bottom-12 z-40 p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 256 256"><path id="fullScreenIconPath" d="M216,48V96a8,8,0,0,1-16,0V67.31l-42.34,42.35a8,8,0,0,1-11.32-11.32L188.69,56H160a8,8,0,0,1,0-16h48A8,8,0,0,1,216,48ZM98.34,146.34,56,188.69V160a8,8,0,0,0-16,0v48a8,8,0,0,0,8,8H96a8,8,0,0,0,0-16H67.31l42.35-42.34a8,8,0,0,0-11.32-11.32ZM208,152a8,8,0,0,0-8,8v28.69l-42.34-42.35a8,8,0,0,0-11.32,11.32L188.69,200H160a8,8,0,0,0,0,16h48a8,8,0,0,0,8-8V160A8,8,0,0,0,208,152ZM67.31,56H96a8,8,0,0,0,0-16H48a8,8,0,0,0-8,8V96a8,8,0,0,0,16,0V67.31l42.34,42.35a8,8,0,0,0,11.32-11.32Z" /></svg></button>
+    <!-- Image Mode Toast -->
+    <div id="imageModeToast" class="image-mode-toast">📷 Image Mode</div>
+
+    <!-- Hidden file input for Image Mode uploads -->
+    <input type="file" id="imageModeFileInput" accept="image/*" class="hidden" capture="environment">
+
+    <button id="fullScreenToggleBtn"
+        class="fixed right-4 bottom-20 md:bottom-12 z-40 p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 hidden"><svg
+            xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 256 256">
+            <path id="fullScreenIconPath"
+                d="M216,48V96a8,8,0,0,1-16,0V67.31l-42.34,42.35a8,8,0,0,1-11.32-11.32L188.69,56H160a8,8,0,0,1,0-16h48A8,8,0,0,1,216,48ZM98.34,146.34,56,188.69V160a8,8,0,0,0-16,0v48a8,8,0,0,0,8,8H96a8,8,0,0,0,0-16H67.31l42.35-42.34a8,8,0,0,0-11.32-11.32ZM208,152a8,8,0,0,0-8,8v28.69l-42.34-42.35a8,8,0,0,0-11.32,11.32L188.69,200H160a8,8,0,0,0,0,16h48a8,8,0,0,0,8-8V160A8,8,0,0,0,208,152ZM67.31,56H96a8,8,0,0,0,0-16H48a8,8,0,0,0-8,8V96a8,8,0,0,0,16,0V67.31l42.34,42.35a8,8,0,0,0,11.32-11.32Z" />
+        </svg></button>
 
     <!-- General Modal -->
-    <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none"><div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center"><div id="modalIcon"></div><h3 id="modalTitle" class="text-xl font-bold text-gray-800 mt-4"></h3><p id="modalMessage" class="text-gray-600 mt-2"></p><button id="modalCloseBtn" class="w-full mt-6 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700">OK</button></div></div>
-    
+    <div id="customModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none">
+        <div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+            <div id="modalIcon"></div>
+            <h3 id="modalTitle" class="text-xl font-bold text-gray-800 mt-4"></h3>
+            <p id="modalMessage" class="text-gray-600 mt-2"></p><button id="modalCloseBtn"
+                class="w-full mt-6 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700">OK</button>
+        </div>
+    </div>
+
     <!-- Confirm Modal -->
-    <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none"><div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100"><svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div><h3 id="confirmModalTitle" class="text-xl font-bold text-gray-800 mt-4">Confirm Action</h3><p id="confirmModalMessage" class="text-gray-600 mt-2"></p><div class="flex justify-center space-x-4 mt-6"><button id="confirmDeleteBtn" class="flex-1 py-2 px-4 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700">Confirm</button><button id="cancelDeleteBtn" class="flex-1 py-2 px-4 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400">Cancel</button></div></div></div>
+    <div id="confirmModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none">
+        <div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100"><svg
+                    class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                    </path>
+                </svg></div>
+            <h3 id="confirmModalTitle" class="text-xl font-bold text-gray-800 mt-4">Confirm Action</h3>
+            <p id="confirmModalMessage" class="text-gray-600 mt-2"></p>
+            <div class="flex justify-center space-x-4 mt-6"><button id="confirmDeleteBtn"
+                    class="flex-1 py-2 px-4 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700">Confirm</button><button
+                    id="cancelDeleteBtn"
+                    class="flex-1 py-2 px-4 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400">Cancel</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Password Modal -->
-    <div id="passwordModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none">
+    <div id="passwordModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none">
         <div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
             <h3 class="text-xl font-bold text-gray-800 mb-4">Admin Access</h3>
             <p class="text-gray-600 mb-4 text-sm">Enter password to unlock data management.</p>
-            <input type="password" id="adminPasswordInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4" placeholder="Enter password">
+            <input type="password" id="adminPasswordInput"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"
+                placeholder="Enter password">
             <div class="flex space-x-2">
-                <button id="submitPasswordBtn" class="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold">Unlock</button>
-                <button id="cancelPasswordBtn" class="flex-1 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold">Cancel</button>
+                <button id="submitPasswordBtn"
+                    class="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold">Unlock</button>
+                <button id="cancelPasswordBtn"
+                    class="flex-1 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold">Cancel</button>
             </div>
         </div>
     </div>
 
     <!-- Image Viewer Modal -->
-    <div id="imageViewerModal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none" onclick="this.classList.add('opacity-0', 'pointer-events-none')">
+    <div id="imageViewerModal"
+        class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-4 z-50 modal-backdrop opacity-0 pointer-events-none"
+        onclick="this.classList.add('opacity-0', 'pointer-events-none')">
         <div class="relative max-w-full max-h-full">
-            <img id="fullSizeImage" src="" class="max-w-full max-h-[90vh] rounded-lg shadow-2xl" alt="Full size stock image">
+            <img id="fullSizeImage" src="" class="max-w-full max-h-[90vh] rounded-lg shadow-2xl"
+                alt="Full size stock image">
             <button class="absolute -top-10 right-0 text-white hover:text-gray-300 focus:outline-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
@@ -366,10 +922,34 @@
 
     <nav class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-custom">
         <div class="flex justify-around max-w-md mx-auto px-2 py-2">
-            <a href="#homePage" data-page="homePage" class="nav-link flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 w-1/4 py-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span class="text-xs">Home</span></a>
-            <a href="#inventoryPage" data-page="inventoryPage" class="nav-link flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 w-1/4 py-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg><span class="text-xs">Inventory</span></a>
-            <a href="#addPage" data-page="addPage" class="nav-link flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 w-1/4 py-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span class="text-xs">Add</span></a>
-            <a href="#dashboardPage" data-page="dashboardPage" class="nav-link flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 w-1/4 py-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg><span class="text-xs">Dashboard</span></a>
+            <a href="#homePage" data-page="homePage"
+                class="nav-link flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 w-1/4 py-1"><svg
+                    xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg><span class="text-xs">Home</span></a>
+            <a href="#inventoryPage" data-page="inventoryPage"
+                class="nav-link flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 w-1/4 py-1"><svg
+                    xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                </svg><span class="text-xs">Inventory</span></a>
+            <a href="#addPage" data-page="addPage"
+                class="nav-link flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 w-1/4 py-1"><svg
+                    xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg><span class="text-xs">Add</span></a>
+            <a href="#dashboardPage" data-page="dashboardPage"
+                class="nav-link flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 w-1/4 py-1"><svg
+                    xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg><span class="text-xs">Dashboard</span></a>
         </div>
     </nav>
 
@@ -387,7 +967,7 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        
+
         document.addEventListener('DOMContentLoaded', () => {
             const ARROWS_OUT_PATH = "M216,48V96a8,8,0,0,1-16,0V67.31l-42.34,42.35a8,8,0,0,1-11.32-11.32L188.69,56H160a8,8,0,0,1,0-16h48A8,8,0,0,1,216,48ZM98.34,146.34,56,188.69V160a8,8,0,0,0-16,0v48a8,8,0,0,0,8,8H96a8,8,0,0,0,0-16H67.31l42.35-42.34a8,8,0,0,0-11.32-11.32ZM208,152a8,8,0,0,0-8,8v28.69l-42.34-42.35a8,8,0,0,0-11.32,11.32L188.69,200H160a8,8,0,0,0,0,16h48a8,8,0,0,0,8-8V160A8,8,0,0,0,208,152ZM67.31,56H96a8,8,0,0,0,0-16H48a8,8,0,0,0-8,8V96a8,8,0,0,0,16,0V67.31l42.34,42.35a8,8,0,0,0,11.32-11.32Z";
             const ARROWS_IN_PATH = "M192,104a8,8,0,0,0,8-8V48a8,8,0,0,0-8-8H144a8,8,0,0,0,0,16h28.69L130.34,101.66a8,8,0,0,0,11.32,11.32L200,67.31V96A8,8,0,0,0,208,104Zm-80,8a8,8,0,0,0-8-8H48a8,8,0,0,0-8-8v48a8,8,0,0,0,8,8H96a8,8,0,0,0,0-16H67.31l42.35-42.34a8,8,0,0,0-11.32-11.32ZM48,160a8,8,0,0,0,8,8h28.69l-42.35,42.34a8,8,0,0,0,11.32,11.32L96,188.69V208a8,8,0,0,0,16,0V160a8,8,0,0,0-8-8ZM188.69,176H160a8,8,0,0,0,0,16h48a8,8,0,0,0,8-8V144a8,8,0,0,0-16,0v28.69l-42.34-42.35a8,8,0,0,0-11.32,11.32Z";
@@ -410,12 +990,12 @@
             const importCsvInput = document.getElementById('importCsvInput');
             const searchInput = document.getElementById('searchInput');
             const clearDataBtn = document.getElementById('clearDataBtn');
-            const resetValuesBtn = document.getElementById('resetValuesBtn'); 
+            const resetValuesBtn = document.getElementById('resetValuesBtn');
             const clearSearchBtn = document.getElementById('clearSearchBtn');
             const sortLatestOnTopCheckbox = document.getElementById('sortLatestOnTop');
             const showTimeCheckbox = document.getElementById('showTime');
             const showNotesCheckbox = document.getElementById('showNotes');
-            const activityLogList = document.getElementById('activityLogList'); 
+            const activityLogList = document.getElementById('activityLogList');
             const exportLogCsvBtn = document.getElementById('exportLogCsvBtn');
             const colorSelector = document.getElementById('colorSelector');
             const resetColorsBtn = document.getElementById('resetColorsBtn');
@@ -434,7 +1014,7 @@
             const processJsonBtn = document.getElementById('processJsonBtn');
             const adminControls = document.getElementById('adminControls');
             const homeColorFilter = document.getElementById('homeColorFilter');
-            
+
             // Image Elements
             const imageInput = document.getElementById('imageInput');
             const formImageContainer = document.getElementById('formImageContainer');
@@ -456,7 +1036,7 @@
             const confirmModalMessage = document.getElementById('confirmModalMessage');
             const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
             const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-            
+
             // Password Modal
             const passwordModal = document.getElementById('passwordModal');
             const adminPasswordInput = document.getElementById('adminPasswordInput');
@@ -465,20 +1045,24 @@
 
             // State
             let inventory = [];
-            let logActivity = []; 
-            let editItemId = null; 
+            let logActivity = [];
+            let editItemId = null;
             let prefillNameForNewLot = '';
             let expandedGroups = {};
             let realTimeUpdateInterval;
             let itemToScrollTo = null;
             let modalCallback = null;
             let editOriginPage = 'homePage';
-            let lastAddClickTime = 0; 
-            let lastDashboardClickTime = 0; 
+            let lastAddClickTime = 0;
+            let lastDashboardClickTime = 0;
             let currentImageFile = null;
             let currentImageBase64 = null; // For full size update
             let isImageRemoved = false; // Flag to track removal in edit mode
             let activeColorFilter = 'all'; // State for home page filter
+            let isImageMode = false; // Image Mode toggle state
+            let lastHomeClickTime = 0; // For double-tap detection on Home
+            let itemTypeImages = {}; // Cache: { normalizedName: { thumbnail, imageId } }
+            let imageModeUploadTarget = null; // Which item name is being uploaded for
 
             const DEFAULT_MAX_WIDTH_CLASS = 'max-w-4xl';
             const FIFTEEN_SECONDS = 15 * 1000;
@@ -503,12 +1087,12 @@
 
                 // Listener 1: Inventory Collection
                 db.collection('inventory').onSnapshot((snapshot) => {
-                    showLoading(false); 
-                    
+                    showLoading(false);
+
                     inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    
+
                     localStorage.setItem('stockInventory', JSON.stringify(inventory));
-                    
+
                     try {
                         refreshUI();
                         updateLastSyncTime();
@@ -523,9 +1107,9 @@
                 // Listener 2: Logs Collection (Limit to last 50)
                 db.collection('logs').orderBy('timestamp', 'desc').limit(50).onSnapshot((snapshot) => {
                     logActivity = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    
+
                     localStorage.setItem('stockActivityLog', JSON.stringify(logActivity));
-                    
+
                     if (document.querySelector('.page.active')?.id === 'dashboardPage') renderActivityLog();
                 }, (error) => {
                     console.error("Logs Sync Error:", error);
@@ -535,11 +1119,14 @@
             function refreshUI() {
                 const currentPage = document.querySelector('.page.active')?.id || 'homePage';
                 if (currentPage === 'inventoryPage') renderInventory();
-                if (currentPage === 'homePage') renderHomeInventoryTable();
+                if (currentPage === 'homePage') {
+                    if (isImageMode) renderImageModeView();
+                    else renderHomeInventoryTable();
+                }
             }
 
             // --- FIRESTORE CRUD OPERATIONS ---
-            
+
             async function saveImageToFirestore(fullBase64) {
                 if (!fullBase64) return null;
                 try {
@@ -577,6 +1164,52 @@
                 }
             }
 
+            // --- ITEM TYPE IMAGES (per item name) ---
+            async function saveItemTypeImageToFirestore(itemName, fullBase64, thumbBase64) {
+                const key = itemName.trim();
+                if (!key || !fullBase64) return;
+                try {
+                    // Check if doc already exists
+                    const existing = await db.collection('item_type_images').where('itemName', '==', key).get();
+                    if (!existing.empty) {
+                        // Update existing
+                        const docRef = existing.docs[0].ref;
+                        await docRef.update({ imageData: fullBase64, thumbnail: thumbBase64, updatedAt: Date.now() });
+                    } else {
+                        await db.collection('item_type_images').add({ itemName: key, imageData: fullBase64, thumbnail: thumbBase64, createdAt: Date.now() });
+                    }
+                } catch (e) {
+                    console.error('Error saving item type image:', e);
+                }
+            }
+
+            function startItemTypeImagesSync() {
+                db.collection('item_type_images').onSnapshot((snapshot) => {
+                    itemTypeImages = {};
+                    snapshot.docs.forEach(doc => {
+                        const data = doc.data();
+                        itemTypeImages[data.itemName] = { thumbnail: data.thumbnail, imageId: doc.id };
+                    });
+                    // Re-render image mode if currently active
+                    if (isImageMode && document.querySelector('.page.active')?.id === 'homePage') {
+                        renderImageModeView();
+                    }
+                }, (error) => {
+                    console.error('Item Type Images Sync Error:', error);
+                });
+            }
+
+            async function fetchItemTypeFullImage(docId) {
+                if (!docId) return null;
+                try {
+                    const doc = await db.collection('item_type_images').doc(docId).get();
+                    return doc.exists ? doc.data().imageData : null;
+                } catch (e) {
+                    console.error('Error fetching item type image:', e);
+                    return null;
+                }
+            }
+
             function addItemToFirestore(item) {
                 return db.collection('inventory').add(item); // Return promise for await
             }
@@ -605,7 +1238,7 @@
 
             async function clearAllDataFromFirestore() {
                 const snapshot = await db.collection('inventory').get();
-                const batchSize = 400; 
+                const batchSize = 400;
                 let batch = db.batch();
                 let count = 0;
 
@@ -623,17 +1256,17 @@
                 if (count > 0) await batch.commit();
 
                 addLogToFirestore({
-                      timestamp: Date.now(),
-                      action: 'Cleared All',
-                      message: 'All inventory data cleared.',
-                      itemName: 'All',
-                      itemLot: ''
+                    timestamp: Date.now(),
+                    action: 'Cleared All',
+                    message: 'All inventory data cleared.',
+                    itemName: 'All',
+                    itemLot: ''
                 });
             }
 
             async function resetValuesInFirestore() {
                 const snapshot = await db.collection('inventory').get();
-                const batchSize = 400; 
+                const batchSize = 400;
                 let batch = db.batch();
                 let count = 0;
                 let processedCount = 0;
@@ -643,7 +1276,7 @@
                     batch.update(doc.ref, {
                         quantity: 0,
                         systemStock: 0,
-                        lot: '' 
+                        lot: ''
                     });
                     count++;
                     processedCount++;
@@ -654,10 +1287,10 @@
                     }
                 });
                 if (count > 0) await batch.commit();
-                
+
                 return processedCount;
             }
-            
+
             async function bulkUpdateColorInFirestore(color, conditionFn = () => true) {
                 const snapshot = await db.collection('inventory').get();
                 const batch = db.batch();
@@ -791,8 +1424,8 @@
                         };
                     };
                     reader.onerror = () => {
-                         console.error("FileReader failed");
-                         resolve(null);
+                        console.error("FileReader failed");
+                        resolve(null);
                     };
                 });
             }
@@ -809,7 +1442,7 @@
                 });
                 if (targetRow) {
                     targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    targetRow.style.outline = '2px solid #4f46e5'; 
+                    targetRow.style.outline = '2px solid #4f46e5';
                     setTimeout(() => targetRow.style.outline = 'none', 2000);
                 }
             }
@@ -817,7 +1450,7 @@
             function toggleFullScreen() {
                 const isCurrentlyConstrained = mainContentWrapper.classList.contains(DEFAULT_MAX_WIDTH_CLASS);
                 mainContentWrapper.classList.toggle(DEFAULT_MAX_WIDTH_CLASS, !isCurrentlyConstrained);
-                mainContentWrapper.classList.toggle('mx-auto', !isCurrentlyConstrained); 
+                mainContentWrapper.classList.toggle('mx-auto', !isCurrentlyConstrained);
                 if (isCurrentlyConstrained) {
                     fullScreenIconPath.setAttribute('d', ARROWS_IN_PATH);
                     fullScreenToggleBtn.title = "Toggle Normal Width";
@@ -846,13 +1479,14 @@
                 }
                 if (pageId === 'addPage') {
                     mainContentWrapper.classList.remove(DEFAULT_MAX_WIDTH_CLASS, 'mx-auto');
-                    mainContentWrapper.classList.add('md:px-4', 'lg:px-8'); 
+                    mainContentWrapper.classList.add('md:px-4', 'lg:px-8');
                 } else {
                     mainContentWrapper.classList.add(DEFAULT_MAX_WIDTH_CLASS, 'mx-auto');
                     mainContentWrapper.classList.remove('md:px-4', 'lg:px-8');
                 }
                 if (pageId === 'homePage') {
                     fullScreenToggleBtn.classList.remove('hidden');
+                    applyImageModeState();
                 } else {
                     fullScreenToggleBtn.classList.add('hidden');
                 }
@@ -880,8 +1514,12 @@
                 }
                 if (pageId === 'inventoryPage') renderInventory();
                 if (pageId === 'homePage') {
-                    renderHomeInventoryTable();
-                    realTimeUpdateInterval = setInterval(updateHomeTableVisuals, 1000);
+                    if (isImageMode) {
+                        renderImageModeView();
+                    } else {
+                        renderHomeInventoryTable();
+                        realTimeUpdateInterval = setInterval(updateHomeTableVisuals, 1000);
+                    }
                 }
                 if (pageId === 'dashboardPage') renderActivityLog();
             }
@@ -941,7 +1579,7 @@
                 inventory.map(normalizeItem).forEach((item, originalIndex) => {
                     const itemNameKey = item.name.toLowerCase();
                     if (!groupedItems.has(itemNameKey)) groupedItems.set(itemNameKey, []);
-                    groupedItems.get(itemNameKey).push({ ...item, originalIndex }); 
+                    groupedItems.get(itemNameKey).push({ ...item, originalIndex });
                 });
                 const sortedGroupedItems = Array.from(groupedItems.entries()).sort(([keyA], [keyB]) => keyA.localeCompare(keyB));
                 for (const [nameKey, lots] of sortedGroupedItems) {
@@ -980,14 +1618,14 @@
 
                 homeInventoryTableContainer.innerHTML = itemsToRender.length === 0 ? `<p class="text-center text-gray-500 py-8">No items in inventory to display.</p>` : '';
                 if (itemsToRender.length === 0) return;
-                
+
                 const groupedItems = new Map();
                 itemsToRender.map(normalizeItem).forEach((item, originalIndex) => {
                     const group = groupedItems.get(item.name);
                     if (!group) {
-                        groupedItems.set(item.name, { lots: [{...item}], totalQuantity: item.quantity, totalSystemStock: item.systemStock, latestUpdate: item.lastUpdated, primaryUnit: item.unit, itemType: item.itemType });
+                        groupedItems.set(item.name, { lots: [{ ...item }], totalQuantity: item.quantity, totalSystemStock: item.systemStock, latestUpdate: item.lastUpdated, primaryUnit: item.unit, itemType: item.itemType });
                     } else {
-                        group.lots.push({...item});
+                        group.lots.push({ ...item });
                         group.totalQuantity += item.quantity;
                         group.totalSystemStock += item.systemStock;
                         if (item.lastUpdated > group.latestUpdate) group.latestUpdate = item.lastUpdated;
@@ -995,7 +1633,7 @@
                 });
 
                 let displayGroups = Array.from(groupedItems.entries());
-                
+
                 if (sortLatestOnTopCheckbox.checked) {
                     displayGroups.sort(([, a], [, b]) => (b.latestUpdate || 0) - (a.latestUpdate || 0));
                 } else {
@@ -1011,14 +1649,14 @@
                 table.innerHTML = `<thead class="bg-gray-50"><tr><th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name / Type</th><th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Qty (Count)</th><th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">System Stock</th><th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lot</th><th scope="col" class="time-col px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th><th scope="col" class="notes-col px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes & Image</th></tr></thead><tbody class="bg-white divide-y divide-gray-200"></tbody>`;
                 const tableBody = table.querySelector('tbody');
                 const colorMap = { green: 'bg-green-500', yellow: 'bg-yellow-400', orange: 'bg-orange-400', red: 'bg-red-500', purple: 'bg-purple-500', grey: 'bg-gray-400' };
-                
+
                 displayGroups.forEach(([name, group]) => {
                     const uniqueColors = [...new Set(group.lots.map(lot => lot.color).filter(c => c))];
                     const uniqueItemTypes = [...new Set(group.lots.map(lot => lot.itemType).filter(t => t))];
                     let colorDotsHtml = uniqueColors.map(color => `<span class="inline-block w-2 h-2 ${colorMap[color] || ''} rounded-full mr-1 flex-shrink-0" title="${color}"></span>`).join('');
                     if (colorDotsHtml) colorDotsHtml = `<div class="flex items-center mr-2">${colorDotsHtml}</div>`;
                     const itemTypeBadgesHtml = uniqueItemTypes.map(type => `<span class="text-xs ${type === 'Key' ? 'text-blue-600' : 'text-orange-600'} font-medium ml-1">(${type})</span>`).join('');
-                    
+
                     if (group.lots.length > 1) {
                         const isExpanded = !!expandedGroups[name];
                         const groupHeaderRow = tableBody.insertRow();
@@ -1026,21 +1664,21 @@
                         groupHeaderRow.dataset.groupName = name;
                         groupHeaderRow.dataset.timestamp = group.latestUpdate;
                         groupHeaderRow.innerHTML = `<td class="px-4 py-4 text-sm font-medium text-gray-900"><div class="flex items-center">${colorDotsHtml}<svg class="w-4 h-4 mr-2 transform transition-transform ${isExpanded ? 'rotate-90' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg><div>${name} ${itemTypeBadgesHtml}</div></div></td><td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-indigo-600" title="Expand to edit individual lots">${group.totalQuantity} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-blue-600" title="Expand to edit individual lots">${group.totalSystemStock} ${group.primaryUnit || ''}</td><td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">(${group.lots.length} lots)</td><td class="time-col time-cell px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td><td class="notes-col px-4 py-4 whitespace-nowrap text-sm text-gray-500"></td>`;
-                        group.lots.sort((a,b) => (a.lot || '').localeCompare(b.lot || '')).forEach(lot => {
+                        group.lots.sort((a, b) => (a.lot || '').localeCompare(b.lot || '')).forEach(lot => {
                             const lotColorDot = lot.color ? `<span class="inline-block w-2 h-2 ${colorMap[lot.color] || ''} rounded-full mr-2 flex-shrink-0" title="${lot.color}"></span>` : '';
                             const lotTypeBadge = `<span class="text-xs ${lot.itemType === 'Key' ? 'text-blue-500' : 'text-orange-500'} font-medium ml-1">${lot.itemType ? (lot.itemType.startsWith('C') ? '(C)' : '(K)') : ''}</span>`;
                             const imgThumb = lot.thumbnail ? `<div class="image-thumbnail-container ml-2 float-right" data-image-id="${lot.imageId}"><img src="${lot.thumbnail}"></div>` : '';
-                            
+
                             const lotRow = tableBody.insertRow();
                             lotRow.className = `lot-row border-l-4 border-gray-200 ${isExpanded ? '' : 'hidden'}`;
                             lotRow.dataset.groupFor = name;
-                            lotRow.innerHTML = `<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500"><div class="flex items-center ml-8">${lotColorDot} ${lotTypeBadge}</div></td><td class="quick-edit-lot-cell px-4 py-3 whitespace-nowrap text-sm text-indigo-700" data-id="${lot.id}">${lot.quantity} ${lot.unit || ''}</td><td class="quick-edit-system-cell px-4 py-3 whitespace-nowrap text-sm text-blue-700" data-id="${lot.id}">${lot.systemStock} ${lot.unit || ''}</td><td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${lot.lot}</td><td class="time-col px-4 py-3 whitespace-nowrap text-sm text-gray-500">${new Date(lot.lastUpdated).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour:'2-digit', minute:'2-digit' })}</td><td class="notes-col px-4 py-3 text-sm text-gray-500 whitespace-pre-wrap break-words">${imgThumb} ${lot.notes || ''}</td>`;
+                            lotRow.innerHTML = `<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500"><div class="flex items-center ml-8">${lotColorDot} ${lotTypeBadge}</div></td><td class="quick-edit-lot-cell px-4 py-3 whitespace-nowrap text-sm text-indigo-700" data-id="${lot.id}">${lot.quantity} ${lot.unit || ''}</td><td class="quick-edit-system-cell px-4 py-3 whitespace-nowrap text-sm text-blue-700" data-id="${lot.id}">${lot.systemStock} ${lot.unit || ''}</td><td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${lot.lot}</td><td class="time-col px-4 py-3 whitespace-nowrap text-sm text-gray-500">${new Date(lot.lastUpdated).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td><td class="notes-col px-4 py-3 text-sm text-gray-500 whitespace-pre-wrap break-words">${imgThumb} ${lot.notes || ''}</td>`;
                         });
                     } else {
                         const singleLot = group.lots[0];
                         const singleColorDot = uniqueColors.map(color => `<span class="inline-block w-3 h-3 ${colorMap[color] || ''} rounded-full mr-2 flex-shrink-0" title="${color}"></span>`).join('');
                         const imgThumb = singleLot.thumbnail ? `<div class="image-thumbnail-container ml-2 float-right" data-image-id="${singleLot.imageId}"><img src="${singleLot.thumbnail}"></div>` : '';
-                        
+
                         const singleRow = tableBody.insertRow();
                         singleRow.className = 'group-header is-static';
                         singleRow.dataset.timestamp = group.latestUpdate;
@@ -1050,7 +1688,7 @@
                 homeInventoryTableContainer.appendChild(table);
                 updateHomeTableVisuals();
                 if (itemToScrollTo) {
-                    setTimeout(() => { scrollToItem(itemToScrollTo); itemToScrollTo = null; }, 50); 
+                    setTimeout(() => { scrollToItem(itemToScrollTo); itemToScrollTo = null; }, 50);
                 }
             }
 
@@ -1076,9 +1714,9 @@
                     else if (age >= FORTY_FIVE_DAYS) newClass = 'bg-red-pastel';
                     row.classList.remove('animate-new', 'animate-recent', 'animate-new-single', 'animate-recent-single', 'bg-yellow-pastel', 'bg-orange-pastel', 'bg-red-pastel', 'bg-purple-pastel');
                     row.style.animation = 'none';
-                    void row.offsetWidth; 
+                    void row.offsetWidth;
                     row.style.animation = '';
-                    if(newClass) row.classList.add(newClass);
+                    if (newClass) row.classList.add(newClass);
                     row.querySelectorAll('.time-col').forEach(col => col.style.display = showTime ? 'table-cell' : 'none');
                     row.querySelectorAll('.notes-col').forEach(col => col.style.display = showNotes ? 'table-cell' : 'none');
                     if (showTime) {
@@ -1116,7 +1754,7 @@
             }
 
             triggerUploadBtn.addEventListener('click', () => imageInput.click());
-            
+
             imageInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (file) {
@@ -1195,17 +1833,17 @@
             systemIncrementBtn.addEventListener('click', () => systemStockInput.value = parseInt(systemStockInput.value, 10) + 1);
             systemDecrementBtn.addEventListener('click', () => { if (parseInt(systemStockInput.value, 10) > 0) systemStockInput.value = parseInt(systemStockInput.value, 10) - 1; });
             systemResetBtn.addEventListener('click', () => systemStockInput.value = 0);
-            
+
             // Modified Navigation for Double Tap Logic
-            navLinks.forEach(link => link.addEventListener('click', (e) => { 
-                e.preventDefault(); 
+            navLinks.forEach(link => link.addEventListener('click', (e) => {
+                e.preventDefault();
                 const targetPage = link.dataset.page;
-                
+
                 // Double Tap Logic for Add Page
                 if (targetPage === 'addPage') {
                     const currentTime = new Date().getTime();
                     const timeDiff = currentTime - lastAddClickTime;
-                    
+
                     if (timeDiff < 300 && timeDiff > 0) {
                         editItemId = null;
                         prefillNameForNewLot = '';
@@ -1214,19 +1852,39 @@
                     }
                     lastAddClickTime = currentTime;
                 }
-                
+
+                // Double Tap Logic for Home (Image Mode Toggle)
+                if (targetPage === 'homePage') {
+                    const currentTime = new Date().getTime();
+                    const timeDiff = currentTime - lastHomeClickTime;
+
+                    if (timeDiff < 300 && timeDiff > 0) {
+                        isImageMode = !isImageMode;
+                        showImageModeToast(isImageMode ? '📷 Image Mode' : '📋 Table Mode');
+                        applyImageModeState();
+                        if (isImageMode) {
+                            renderImageModeView();
+                        } else {
+                            renderHomeInventoryTable();
+                            if (realTimeUpdateInterval) clearInterval(realTimeUpdateInterval);
+                            realTimeUpdateInterval = setInterval(updateHomeTableVisuals, 1000);
+                        }
+                    }
+                    lastHomeClickTime = currentTime;
+                }
+
                 // NEW: Double Tap Logic for Dashboard (Admin Unlock)
                 if (targetPage === 'dashboardPage') {
                     const currentTime = new Date().getTime();
                     const timeDiff = currentTime - lastDashboardClickTime;
-                    
+
                     if (timeDiff < 300 && timeDiff > 0) {
                         showPasswordModal();
                     }
                     lastDashboardClickTime = currentTime;
                 }
 
-                showPage(targetPage); 
+                showPage(targetPage);
             }));
 
             fullScreenToggleBtn.addEventListener('click', toggleFullScreen);
@@ -1261,7 +1919,7 @@
                     colorSelector.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
                     if (itemToEdit.color) colorSelector.querySelector(`[data-color="${itemToEdit.color}"]`)?.classList.add('selected');
                     setItemType(itemToEdit.itemType);
-                    
+
                     // Populate image in edit mode
                     resetImageInput();
                     if (itemToEdit.thumbnail) {
@@ -1290,7 +1948,7 @@
 
                 if (!name) return showModal('Fields Required', 'Please enter a Name.', 'error');
                 if (quantity < 0 || systemStock < 0) return showModal('Invalid Value', 'Stock cannot be negative.', 'error');
-                
+
                 showLoading(true);
 
                 try {
@@ -1309,8 +1967,8 @@
                             if (imageId) await deleteImageFromFirestore(imageId);
                             imageId = null;
                             thumbnail = null;
-                        } 
-                        
+                        }
+
                         // If new image selected, it overrides
                         if (currentImageFile) {
                             if (imageId) await deleteImageFromFirestore(imageId); // Delete old first
@@ -1327,13 +1985,13 @@
                         }
                     }
 
-                    const newItemData = { 
-                        name, unit, lot, quantity, systemStock, notes, color, itemType, 
+                    const newItemData = {
+                        name, unit, lot, quantity, systemStock, notes, color, itemType,
                         lastUpdated: Date.now(),
                         imageId: imageId || null, // Explicit null check
                         thumbnail: thumbnail || null // Explicit null check
                     };
-                    
+
                     if (editItemId) {
                         const oldItemData = inventory.find(i => i.id === editItemId);
                         await updateItemInFirestore(editItemId, newItemData);
@@ -1355,7 +2013,7 @@
                         itemToScrollTo = newItemData.name;
                         showModal('Success!', `'${newItemData.name}' added to inventory.`, 'success', () => { showPage('homePage'); });
                     }
-                    
+
                     stockForm.reset();
                     counterInput.value = 0;
                     systemStockInput.value = 0;
@@ -1382,9 +2040,9 @@
             });
 
             clearDataBtn.addEventListener('click', () => {
-                showConfirmModal('Clear All Data', 'Permanently delete all inventory data?', () => { 
+                showConfirmModal('Clear All Data', 'Permanently delete all inventory data?', () => {
                     clearAllDataFromFirestore().then(() => {
-                          showModal('Success', 'All inventory data has been cleared.');
+                        showModal('Success', 'All inventory data has been cleared.');
                     });
                 });
             });
@@ -1418,18 +2076,18 @@
                     let count = 0;
 
                     dataArray.forEach(item => {
-                        const { id, ...cleanItem } = item; 
+                        const { id, ...cleanItem } = item;
                         cleanItem.quantity = Number(cleanItem.quantity) || 0;
                         cleanItem.systemStock = Number(cleanItem.systemStock) || 0;
                         cleanItem.lastUpdated = cleanItem.lastUpdated || Date.now();
 
-                        const docRef = db.collection('inventory').doc(); 
+                        const docRef = db.collection('inventory').doc();
                         batch.set(docRef, cleanItem);
                         count++;
                     });
 
                     await batch.commit();
-                    
+
                     addLogToFirestore({
                         timestamp: Date.now(),
                         action: 'Bulk Import',
@@ -1439,16 +2097,16 @@
                     });
 
                     showLoading(false);
-                    jsonImportArea.value = ''; 
+                    jsonImportArea.value = '';
                     showModal('Success', `Successfully uploaded ${count} items to Firestore.`);
-                    
+
                 } catch (e) {
                     showLoading(false);
                     console.error(e);
                     showModal('Import Failed', 'Invalid JSON format. Please check your data.', 'error');
                 }
             });
-            
+
             document.querySelectorAll('.unit-btn').forEach(button => button.addEventListener('click', (e) => document.getElementById('stockUnit').value = e.target.textContent));
             sortLatestOnTopCheckbox.addEventListener('change', renderHomeInventoryTable);
             showTimeCheckbox.addEventListener('change', updateHomeTableVisuals);
@@ -1458,14 +2116,14 @@
             homeColorFilter.addEventListener('click', (e) => {
                 const btn = e.target.closest('.filter-btn');
                 if (!btn) return;
-                
+
                 const filter = btn.dataset.filter;
                 activeColorFilter = filter;
-                
+
                 // Update active state visuals
                 homeColorFilter.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active-filter'));
                 btn.classList.add('active-filter');
-                
+
                 renderHomeInventoryTable();
             });
 
@@ -1493,7 +2151,7 @@
                     colorSelector.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
                     if (itemToEdit.color) colorSelector.querySelector(`[data-color="${itemToEdit.color}"]`)?.classList.add('selected');
                     setItemType(itemToEdit.itemType);
-                    
+
                     // Populate image in edit mode
                     resetImageInput();
                     if (itemToEdit.thumbnail) {
@@ -1509,50 +2167,187 @@
             });
 
             // Bulk actions using Batch (Async)
-            resetColorsBtn.addEventListener('click', () => { 
-                showConfirmModal('Reset Colors', 'Remove color coding from all items?', async () => { 
+            resetColorsBtn.addEventListener('click', () => {
+                showConfirmModal('Reset Colors', 'Remove color coding from all items?', async () => {
                     const count = await bulkUpdateColorInFirestore(null);
-                    addLogEntry('Updated', { name: `Bulk: ${count} items` }, { color: 'reset' }); 
-                    showModal('Success', 'Colors reset.'); 
-                }); 
+                    addLogEntry('Updated', { name: `Bulk: ${count} items` }, { color: 'reset' });
+                    showModal('Success', 'Colors reset.');
+                });
             });
-            setAllPurpleBtn.addEventListener('click', () => { 
-                showConfirmModal('Set Purple', 'Set all items to purple?', async () => { 
+            setAllPurpleBtn.addEventListener('click', () => {
+                showConfirmModal('Set Purple', 'Set all items to purple?', async () => {
                     const count = await bulkUpdateColorInFirestore('purple');
-                    addLogEntry('Updated', { name: `Bulk: ${count} items` }, { color: 'purple' }); 
-                    showModal('Success', 'All set to purple.'); 
-                }); 
+                    addLogEntry('Updated', { name: `Bulk: ${count} items` }, { color: 'purple' });
+                    showModal('Success', 'All set to purple.');
+                });
             });
-            setBlankToYellowBtn.addEventListener('click', () => { 
-                showConfirmModal('Set Blank to Yellow', 'Set blank items to yellow?', async () => { 
+            setBlankToYellowBtn.addEventListener('click', () => {
+                showConfirmModal('Set Blank to Yellow', 'Set blank items to yellow?', async () => {
                     const count = await bulkUpdateColorInFirestore('yellow', (data) => !data.color);
                     if (count > 0) {
-                        addLogEntry('Updated', { name: `Bulk: ${count} items` }, { color: 'blank->yellow' }); 
-                        showModal('Success', `${count} items updated.`); 
+                        addLogEntry('Updated', { name: `Bulk: ${count} items` }, { color: 'blank->yellow' });
+                        showModal('Success', `${count} items updated.`);
                     } else {
                         showModal('No Change', 'All items have colors.', 'error');
                     }
-                }); 
+                });
             });
-            setAllYellowBtn.addEventListener('click', () => { 
-                showConfirmModal('Set Yellow', 'Set all items to yellow?', async () => { 
+            setAllYellowBtn.addEventListener('click', () => {
+                showConfirmModal('Set Yellow', 'Set all items to yellow?', async () => {
                     const count = await bulkUpdateColorInFirestore('yellow');
-                    addLogEntry('Updated', { name: `Bulk: ${count} items` }, { color: 'yellow' }); 
-                    showModal('Success', 'All set to yellow.'); 
-                }); 
+                    addLogEntry('Updated', { name: `Bulk: ${count} items` }, { color: 'yellow' });
+                    showModal('Success', 'All set to yellow.');
+                });
             });
-            setAllGreyBtn.addEventListener('click', () => { 
-                showConfirmModal('Set Grey', 'Set all items to grey?', async () => { 
+            setAllGreyBtn.addEventListener('click', () => {
+                showConfirmModal('Set Grey', 'Set all items to grey?', async () => {
                     const count = await bulkUpdateColorInFirestore('grey');
-                    addLogEntry('Updated', { name: `Bulk: ${count} items` }, { color: 'grey' }); 
-                    showModal('Success', 'All set to grey.'); 
-                }); 
+                    addLogEntry('Updated', { name: `Bulk: ${count} items` }, { color: 'grey' });
+                    showModal('Success', 'All set to grey.');
+                });
+            });
+
+            // --- IMAGE MODE FUNCTIONS ---
+            function showImageModeToast(text) {
+                const toast = document.getElementById('imageModeToast');
+                toast.textContent = text;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 1200);
+            }
+
+            function applyImageModeState() {
+                const homeTableHeader = document.getElementById('homeTableHeader');
+                const imageModeHeader = document.getElementById('imageModeHeader');
+                const tableContainer = document.getElementById('homeInventoryTableContainer');
+                const imgContainer = document.getElementById('imageModeContainer');
+
+                if (isImageMode) {
+                    homeTableHeader.classList.add('hidden');
+                    imageModeHeader.classList.remove('hidden');
+                    tableContainer.classList.add('hidden');
+                    imgContainer.classList.remove('hidden');
+                    if (realTimeUpdateInterval) { clearInterval(realTimeUpdateInterval); realTimeUpdateInterval = null; }
+                } else {
+                    homeTableHeader.classList.remove('hidden');
+                    imageModeHeader.classList.add('hidden');
+                    tableContainer.classList.remove('hidden');
+                    imgContainer.classList.add('hidden');
+                }
+            }
+
+            function renderImageModeView() {
+                const container = document.getElementById('imageModeContainer');
+                const searchText = (document.getElementById('imageModeSearchInput')?.value || '').trim().toLowerCase();
+
+                // Group inventory by name
+                const groupedItems = new Map();
+                inventory.map(normalizeItem).forEach(item => {
+                    if (!groupedItems.has(item.name)) {
+                        groupedItems.set(item.name, { itemType: item.itemType, color: item.color });
+                    }
+                });
+
+                let itemNames = Array.from(groupedItems.entries());
+                // Sort alphabetically
+                itemNames.sort(([a], [b]) => a.localeCompare(b, 'th'));
+
+                // Apply search filter
+                if (searchText) {
+                    itemNames = itemNames.filter(([name]) => name.toLowerCase().includes(searchText));
+                }
+
+                if (itemNames.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500 py-8">No items found.</p>';
+                    return;
+                }
+
+                const colorMap = { green: 'bg-green-500', yellow: 'bg-yellow-400', orange: 'bg-orange-400', red: 'bg-red-500', purple: 'bg-purple-500', grey: 'bg-gray-400' };
+
+                let html = '<div class="image-mode-grid">';
+                itemNames.forEach(([name, info]) => {
+                    const typeImageData = itemTypeImages[name];
+                    const thumb = typeImageData?.thumbnail;
+                    const imageId = typeImageData?.imageId;
+                    const typeBadgeColor = info.itemType === 'Key' ? 'color: #2563eb' : 'color: #ea580c';
+                    const colorDot = info.color ? `<span class="inline-block w-2 h-2 ${colorMap[info.color] || ''} rounded-full mr-1"></span>` : '';
+
+                    const imgHtml = thumb
+                        ? `<img src="${thumb}" alt="${name}">`
+                        : `<svg class="placeholder-icon h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>`;
+
+                    html += `<div class="image-mode-card" data-item-name="${name}" ${imageId ? `data-image-id="${imageId}"` : ''}>
+                        <div class="image-mode-card-name">${colorDot}${name}<span class="item-type-badge" style="${typeBadgeColor}">${info.itemType || 'Consumption'}</span></div>
+                        <div class="image-mode-card-img">${imgHtml}</div>
+                    </div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            }
+
+            // Image Mode Search
+            document.getElementById('imageModeSearchInput').addEventListener('input', () => {
+                if (isImageMode) renderImageModeView();
+            });
+
+            // Image Mode Card Click -> Upload or View
+            document.getElementById('imageModeContainer').addEventListener('click', async (e) => {
+                const card = e.target.closest('.image-mode-card');
+                if (!card) return;
+
+                const itemName = card.dataset.itemName;
+                const imageId = card.dataset.imageId;
+                const clickedImg = e.target.closest('.image-mode-card-img');
+
+                // If clicked on the image area and there IS an image, show full size
+                if (clickedImg && imageId) {
+                    showLoading(true);
+                    const fullImage = await fetchItemTypeFullImage(imageId);
+                    showLoading(false);
+                    if (fullImage) {
+                        fullSizeImage.src = fullImage;
+                        imageViewerModal.classList.remove('opacity-0', 'pointer-events-none');
+                    } else {
+                        showModal('Error', 'Image not found.', 'error');
+                    }
+                    return;
+                }
+
+                // Otherwise, trigger upload for this item name
+                imageModeUploadTarget = itemName;
+                document.getElementById('imageModeFileInput').click();
+            });
+
+            // Image Mode File Input Change
+            document.getElementById('imageModeFileInput').addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file || !imageModeUploadTarget) return;
+
+                showLoading(true);
+                try {
+                    const fullBase64 = await compressImage(file, 800, 0.8);
+                    const thumbBase64 = await compressImage(file, 120, 0.7);
+                    if (fullBase64 && thumbBase64) {
+                        await saveItemTypeImageToFirestore(imageModeUploadTarget, fullBase64, thumbBase64);
+                        // The real-time listener will update itemTypeImages and re-render
+                    } else {
+                        showModal('Error', 'Failed to process image.', 'error');
+                    }
+                } catch (err) {
+                    console.error('Image upload error:', err);
+                    showModal('Error', 'Failed to upload image.', 'error');
+                } finally {
+                    showLoading(false);
+                    imageModeUploadTarget = null;
+                    document.getElementById('imageModeFileInput').value = '';
+                }
             });
 
             // Initial Sync with Firestore
             startLiveSync();
+            startItemTypeImagesSync();
             showPage('homePage');
         });
     </script>
 </body>
+
 </html>
